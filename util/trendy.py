@@ -62,7 +62,7 @@ def gentrends(x, window=1/3.0, charts=True):
 
     return trends, maxslope, minslope
 
-def segtrends(x, segments=2, charts=True, window=7):
+def segtrends(x, segments=2, charts=True, window=7, title=None):
     """
     Turn minitrends to iterative process more easily adaptable to
     implementation in simple trading systems; allows backtesting functionality.
@@ -72,7 +72,6 @@ def segtrends(x, segments=2, charts=True, window=7):
                    will be taken as a percentage of the size of the data
     :param charts: Boolean value saying whether to print chart to screen
     """
-
     import numpy as np
     y = np.array(x)
     n=len(y)
@@ -93,11 +92,6 @@ def segtrends(x, segments=2, charts=True, window=7):
         x_maxima[i-1] = ind1 + (np.where(seg == maxima[i-1])[0][0])
         x_minima[i-1] = ind1 + (np.where(seg == minima[i-1])[0][0])
 
-    if charts:
-        import matplotlib.pyplot as plt
-        plt.plot(y)
-        plt.grid(True)
-
     for i in range(0, segments-1):
         maxslope = (maxima[i+1] - maxima[i]) / (x_maxima[i+1] - x_maxima[i])
         a_max = maxima[i] - (maxslope * x_maxima[i])
@@ -109,16 +103,13 @@ def segtrends(x, segments=2, charts=True, window=7):
         b_min = minima[i] + (minslope * (len(y) - x_minima[i]))
         minline = np.linspace(a_min, b_min, len(y))
 
-        if charts:
-            #plt.plot(maxline, 'g')
-            #plt.plot(minline, 'r')
-            pass
-
-    if charts:
+    if charts: 
+        import matplotlib.pyplot as plt
         plt.plot(range(n), movy, 'b')
         plt.plot(x_maxima, maxima, 'g')
         plt.plot(x_minima, minima, 'r')
-        plt.show()
+        if title:
+            plt.title(title)
 
     # OUTPUT
     return x_maxima, maxima, x_minima, minima
