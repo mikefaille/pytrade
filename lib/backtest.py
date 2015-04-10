@@ -70,7 +70,7 @@ class Backtest(object):
     Backtest class, simple vectorized one. Works with pandas objects.
     """
     
-    def __init__(self,price, signal, signalType='capital', initialCash = 0, roundShares=True):
+    def __init__(self, price, signal, signalType='capital', initialCash = 0, initialShares=0, roundShares=True):
         """
         Arguments:
         
@@ -81,7 +81,18 @@ class Backtest(object):
         *roundShares* round off number of shares to integers
         
         """
-        
+        def ensure_no_neg_shares():
+            # ensure trade are possible
+            for i, trade in enumerate(self.trades):
+                if i>1 and trade<0:
+                    max_trade = (self.trades[:i].cumsum()+initialShares)[-1]
+                    #print i, trade, max_trade
+                    if max_trade<0:
+                        raise BaseException("problem %s<0" %max_trade)
+                    elif (max_trade-trade)<0:
+                        print "OVERIDE",self.trades[i],"->",-max_trade
+                        self.trades[i]=-max_trade
+
         #TODO: add auto rebalancing
         
         # check for correct input
@@ -108,10 +119,16 @@ class Backtest(object):
         # now create internal data structure 
         self.data = pd.DataFrame(index=price.index , columns = ['trades','price','shares','value','cash','total','pnl'])
         self.data['price'] = price
+
+        #ensure_no_neg_shares()
+
         self.data['trades'] = self.trades
-        self.data['shares'] = self.trades.cumsum()
+        self.data['shares'] = self.trades.cumsum()+initialShares
         self.data['value'] = self.data['shares'] * self.data['price']
-       
+        
+        for i in range(len(self.trades)):
+            print i, self.trades[i], self.data['shares'][i]
+
         delta = self.data['shares'].diff() # shares bought sold
         
         self.data['cash'] = (-delta*self.data['price']).fillna(0).cumsum()+initialCash

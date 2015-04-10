@@ -1,7 +1,7 @@
 ''' simulate a buy/sale strategy on a stock & evaluate its PnL (profit and Lost) '''
 #!pip install mlboost
 import sys
-from util import strategy 
+from util import strategy
 reload(strategy)
 
 charts = True
@@ -18,7 +18,7 @@ else:
     #stock='BP' # oil
     stock = 'TSLA'
 
-eval = strategy.Eval(field='open', months=months, 
+eval = strategy.Eval(field='close', months=months, 
                      initialCash=20000, min_stocks=40, 
                      verbose=verbose, debug=True);
 eval.set_momentums('double','double')

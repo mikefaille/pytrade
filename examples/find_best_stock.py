@@ -6,17 +6,18 @@ from util import strategy
 reload(strategy)
 
 charts = False
-verbose = True
+verbose = False
 months=12
-# 'AAPL'
+
 stocks = ["TSLA", "GS", "SCTY", "AMZN", "CSCO", 
           'UTX','JCI',"GOOGL",'BP','MSFT']
+# add oil stock
+stocks.extend(["SU", 'TA', 'BP', 'XOM'])
 
-stocks.extend(["SU", 'TA', 'BP'])
-
-
+eval = strategy.Eval(field='close', months=months, 
+                     initialCash=20000, min_stocks=40, 
+                     verbose=verbose, debug=False);
+eval.set_momentums('double','double')
 # try current strategy on different stock
-out = strategy.eval_best(stocks, field='open', months=months, 
-                         initialCash=10000, min_stocks=50, 
-                         charts=charts, verbose=verbose);
+out = eval.eval_best(stocks, charts=charts);
   

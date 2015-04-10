@@ -70,7 +70,7 @@ class Eval:
         self.signal = self.orders2strategy(self.orders, price, self.min_stocks)
         
         # run the backtest
-        self.backtest = bt.Backtest(price, self.signal, initialCash=self.initialCash, signalType=signalType)
+        self.backtest = bt.Backtest(price, self.signal, initialCash=self.initialCash, signalType=signalType, initialShares=self.min_stocks)
         
         if charts:
             self.visu(save)
@@ -161,32 +161,32 @@ class Eval:
                 orders[i]=-sell_momentum(orders[i-1])
                 #else:
                 #    orders[i]=max(1, round(orders[i-1]/2))
-                    
+        
+        # ensure no order are taken at the begining
+        for i in range(window):
+            orders[i]=0
         return orders
     
+    def eval_best(self, stocks=["TSLA", "GS", "SCTY", "AMZN", "CSCO", 'UTX','JCI',"GOOGL",'AAPL','BP','MSFT'],  charts=False):
+        # try current strategy on different stock
+        trademap = {}
+        tradedetails = {}
 
-def eval_best(stocks=["TSLA", "GS", "SCTY", "AMZN", "CSCO", 'UTX','JCI',"GOOGL",'AAPL','BP','MSFT'],
-              field='open', months=12, 
-              initialCash=20000, min_stocks=30, 
-              charts=True, verbose=False, debug=False):
-  # try current strategy on different stock
-  trademap = {}
-  tradedetails = {}
-
-  for i, stock in enumerate(stocks):
-    trade = eval(stock, field=field, months=months, initialCash=initialCash, 
-                 min_stocks=min_stocks, charts=charts, verbose=False, debug=debug)
-    if False:
-      print i, stock, trade.ix[-1:,'cash':]
-    trademap[stock] = trade[-1:]['pnl'][-1]
-    tradedetails[stock] = trade[-1:]
-  st = SortHistogram(trademap, False, True)
-  if verbose:
-    print "Here are the Stocks sorted by PnL"
-    for i,el in enumerate(st):
-      stock, value = el
-      print "#", i+1, stock, tradedetails[stock]
-  return st
+        for i, stock in enumerate(stocks):
+            trade = self.run(stock, charts=charts)
+            if False:
+                print i, stock, trade.ix[-1:,'cash':]
+            trademap[stock] = trade[-1:]['pnl'][-1]
+            tradedetails[stock] = trade[-1:]
+        
+        st = SortHistogram(trademap, False, True)
+        
+        print "Here are the Stocks sorted by PnL"
+        for i,el in enumerate(st):
+            stock, value = el
+            print "#", i+1, stock
+            print tradedetails[stock]
+        return st
 
 if __name__ == "__main__":
     #eval(charts=True)
