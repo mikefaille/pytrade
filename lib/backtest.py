@@ -15,9 +15,6 @@ import matplotlib.pyplot as plt
 import sys
 import numpy as np
 
-
-
-
 def tradeBracket(price,entryBar,upper=None, lower=None, timeout=None):
     '''
     trade a  bracket on price series, return price delta and exit bar #
@@ -57,20 +54,16 @@ def tradeBracket(price,entryBar,upper=None, lower=None, timeout=None):
         if idx.any(): 
             exits.append(idx[0]) 
    
-    
     exitBar = min(exits) # choose first exit    
-  
-    
 
     return p[exitBar], exitBar
 
 
 class Backtest(object):
-    """
-    Backtest class, simple vectorized one. Works with pandas objects.
-    """
-    
-    def __init__(self, price, signal, signalType='capital', initialCash = 0, initialShares=0, roundShares=True):
+    """ Backtest class, simple vectorized one. Works with pandas objects.
+    """    
+    def __init__(self, price, signal, signalType='capital', initialCash = 0, 
+                 initialShares=0, roundShares=True, min_shares=0, min_cash=0):
         """
         Arguments:
         
@@ -81,17 +74,21 @@ class Backtest(object):
         *roundShares* round off number of shares to integers
         
         """
-        def ensure_no_neg_shares():
-            # ensure trade are possible
+        def constraints(min_shares, min_cash, verbose=False):
+            shares = initialShares
+            cash = initialCash
             for i, trade in enumerate(self.trades):
-                if i>1 and trade<0:
-                    max_trade = (self.trades[:i].cumsum()+initialShares)[-1]
-                    #print i, trade, max_trade
-                    if max_trade<0:
-                        raise BaseException("problem %s<0" %max_trade)
-                    elif (max_trade-trade)<0:
-                        print "OVERIDE",self.trades[i],"->",-max_trade
-                        self.trades[i]=-max_trade
+                # check you can really sell shares
+                if min_shares!=None and trade<0 and (shares+trade)<=min_shares:
+                    self.trades[i]=-(shares+min_shares)
+                # check you can really buy shares
+                elif min_cash!=None and trade>0 and (trade*price[i]>cash):
+                    self.trades[i]=round(cash/price[i])
+                
+                shares+=self.trades[i]
+                cash+=-self.trades[i]*price[i]
+                if verbose:
+                    print i, trade, "->", self.trades[i], shares
 
         #TODO: add auto rebalancing
         
@@ -119,15 +116,16 @@ class Backtest(object):
         # now create internal data structure 
         self.data = pd.DataFrame(index=price.index , columns = ['trades','price','shares','value','cash','total','pnl'])
         self.data['price'] = price
-
-        #ensure_no_neg_shares()
+        
+        if min_shares!=None or min_cash!=None:
+            constraints(min_shares, min_cash)
 
         self.data['trades'] = self.trades
         self.data['shares'] = self.trades.cumsum()+initialShares
         self.data['value'] = self.data['shares'] * self.data['price']
         
-        for i in range(len(self.trades)):
-            print i, self.trades[i], self.data['shares'][i]
+        #for i in range(len(self.trades)):
+        #    print i, self.trades[i], self.data['shares'][i]
 
         delta = self.data['shares'].diff() # shares bought sold
         
@@ -146,7 +144,7 @@ class Backtest(object):
         '''easy access to pnl data column '''
         return self.data['pnl']
     
-    def plotTrades(self, name=''):
+    def plotTrades(self, name='', style='orders'):
         """ 
         visualise trades on the price chart 
             long entry : green triangle up
@@ -159,34 +157,36 @@ class Backtest(object):
         p.plot(style='x-')
         
         # ---plot markers
-        # this works, but I rather prefer colored markers for each day of position rather than entry-exit signals
-#         indices = {'g^': self.trades[self.trades > 0].index , 
-#                    'ko':self.trades[self.trades == 0].index, 
-#                    'rv':self.trades[self.trades < 0].index}
-#        
-#         
-#         for style, idx in indices.iteritems():
-#             if len(idx) > 0:
-#                 p[idx].plot(style=style)
-        
-        # --- plot trades
-        #colored line for long positions
-        idx = (self.data['shares'] > 0) | (self.data['shares'] > 0).shift(1) 
-        if idx.any():
-            p[idx].plot(style='go')
-            l.append('long')
-        
-        #colored line for short positions    
-        idx = (self.data['shares'] < 0) | (self.data['shares'] < 0).shift(1) 
-        if idx.any():
-            p[idx].plot(style='ro')
-            l.append('short')
+        # this works, but I rather prefer colored markers for each day 
+        # of position rather than entry-exit signals        
+        if style=='orders':
+            indices = {'g^': self.trades[self.trades > 0].index , 
+                       'ko':self.trades[self.trades == 0].index, 
+                       'rv':self.trades[self.trades < 0].index}
+            
 
-        plt.xlim([p.index[0],p.index[-1]]) # show full axis
+            for style, idx in indices.iteritems():
+                if len(idx) > 0:
+                    p[idx].plot(style=style)
+        else:
         
-        plt.legend(l,loc='best')
+            # --- plot trades
+            #colored line for long positions
+            idx = (self.data['shares'] > 0) | (self.data['shares'] > 0).shift(1) 
+            if idx.any():
+                p[idx].plot(style='go')
+                l.append('long')
+        
+            #colored line for short positions    
+            idx = (self.data['shares'] < 0) | (self.data['shares'] < 0).shift(1) 
+            if idx.any():
+                p[idx].plot(style='ro')
+                l.append('short')
+
+            plt.xlim([p.index[0],p.index[-1]]) # show full axis
+            plt.legend(l, loc='best')
+
         plt.title('trades for %s' %name)
-        
         
 class ProgressBar:
     def __init__(self, iterations):
@@ -214,6 +214,7 @@ class ProgressBar:
         pct_string = '%d%%' % percent_done
         self.prog_bar = self.prog_bar[0:pct_place] + \
             (pct_string + self.prog_bar[pct_place + len(pct_string):])
+    
     def __str__(self):
         return str(self.prog_bar)
     

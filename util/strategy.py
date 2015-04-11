@@ -22,11 +22,12 @@ class Eval:
     momentum = log_momentum
     ''' construct a strategy evaluator '''
     def __init__(self, field='open', months=12, initialCash=20000, 
-                 min_stocks=30, verbose=False, debug=False):
+                 min_stocks=30, min_shares=0, verbose=False, debug=False):
         self.field=field
         self.months=months
         self.initialCash = initialCash
         self.min_stocks = min_stocks
+        self.min_shares = min_shares
         self.verbose = verbose
         self.debug = debug
 
@@ -52,7 +53,7 @@ class Eval:
             print "Evaluation ", self.stockname
     
         # get data
-        n = (5*4)*self.months
+        n = int((5*4)*self.months)
         #x = pd.DataReader?
         #x = pd.DataReader("AAPL", "google")
         price = yahoo.getHistoricData(self.stockname)[self.field][-n:] 
@@ -63,14 +64,17 @@ class Eval:
             self.orders = self.orders_from_trends(price, segments=n/5, 
                                                   charts=(charts and self.debug), 
                                                   buy_momentum=self.buy_momentum,
-                                                  sell_momentum=self.sell_momentum);
+                                                  sell_momentum=self.sell_momentum,
+                                                  title=title);
         else:
             raise("unknown strategy '%s'" %strategy)
 
         self.signal = self.orders2strategy(self.orders, price, self.min_stocks)
         
         # run the backtest
-        self.backtest = bt.Backtest(price, self.signal, initialCash=self.initialCash, signalType=signalType, initialShares=self.min_stocks)
+        self.backtest = bt.Backtest(price, self.signal, initialCash=self.initialCash, 
+                                    signalType=signalType, initialShares=self.min_stocks,
+                                    min_shares=self.min_shares)
         
         if charts:
             self.visu(save)
