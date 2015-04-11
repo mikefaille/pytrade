@@ -15,7 +15,7 @@ stocks = ["TSLA", "GS", "SCTY", "AMZN", "CSCO",
 stocks.extend(["SU", 'TA', 'BP', 'XOM'])
 
 eval = strategy.Eval(field='close', months=months, 
-                     initialCash=20000, min_stocks=40, 
+                     initialCash=20000, min_trade=40, 
                      verbose=verbose, debug=False);
 eval.set_momentums('double','double')
 # try current strategy on different stock

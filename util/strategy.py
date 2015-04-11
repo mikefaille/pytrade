@@ -22,12 +22,14 @@ class Eval:
     momentum = log_momentum
     ''' construct a strategy evaluator '''
     def __init__(self, field='open', months=12, initialCash=20000, 
-                 min_stocks=30, min_shares=0, verbose=False, debug=False):
+                 min_trade=30, min_shares=0, min_cash=0, 
+                 verbose=False, debug=False):
         self.field=field
         self.months=months
         self.initialCash = initialCash
-        self.min_stocks = min_stocks
+        self.min_trade = min_trade
         self.min_shares = min_shares
+        self.min_cash = min_cash
         self.verbose = verbose
         self.debug = debug
 
@@ -69,12 +71,12 @@ class Eval:
         else:
             raise("unknown strategy '%s'" %strategy)
 
-        self.signal = self.orders2strategy(self.orders, price, self.min_stocks)
+        self.signal = self.orders2strategy(self.orders, price, self.min_trade)
         
         # run the backtest
         self.backtest = bt.Backtest(price, self.signal, initialCash=self.initialCash, 
-                                    signalType=signalType, initialShares=self.min_stocks,
-                                    min_shares=self.min_shares)
+                                    signalType=signalType, initialShares=self.min_shares,
+                                    min_cash=self.min_cash)
         
         if charts:
             self.visu(save)
@@ -89,20 +91,24 @@ class Eval:
         else:
             figure()
         self.backtest.plotTrades(self.stockname)
+        print "#2) Evaluation of the strategy (PnL (Profit & Log) = Value today - Value yesterday)"
         if save:
             subplot(212)
         else:
             figure()
-        print "#2) Evaluation of the strategy (PnL (Profit & Log) = Value today - Value yesterday)"
         self.backtest.pnl.plot()
         title('pnl '+self.stockname)
         if save:
             savefig('eval.png')
+        
         print "#3) big picture: Price, shares, value, cash & PnL"
         self.backtest.data.plot()
         title('all strategy data %s' %self.stockname)
-        show()
-    
+        if save:
+            savefig('all.png')
+        else:
+            show()
+
     @classmethod
     def orders2strategy(cls, orders, price, min_stocks=1):
         strategy = pd.Series(index=price.index) 

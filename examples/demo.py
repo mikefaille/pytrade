@@ -4,13 +4,6 @@ import sys
 from util import strategy
 reload(strategy)
 
-charts = True
-verbose = True
-debug = True
-signalType = 'orders'
-months = 12
-min_shares = 0
-
 if len(sys.argv)>1:
     stock = sys.argv[1]
 else:
@@ -19,13 +12,13 @@ else:
     #stock='BP' # oil
     stock = 'TSLA'
 
-eval = strategy.Eval(field='close', months=months, 
-                     initialCash=20000, min_stocks=40, 
-                     min_shares=min_shares,
-                     verbose=verbose, debug=True);
+eval = strategy.Eval(field='close', months=12, 
+                     initialCash=35000, min_trade=40, 
+                     min_shares=0, min_cash=0,
+                     verbose=True, debug=True);
 #eval.set_momentums('double','double')
-#eval.set_momentums('log','log')
-eval.set_momentums('exp','exp')
-summary = eval.run(stock, charts=charts, signalType=signalType)
-
+eval.set_momentums('log','log')
+#eval.set_momentums('exp','exp')
+summary = eval.run(stock, charts=True, signalType='shares', save=False)
+summary.to_csv('%s.csv' %stock)
 print stock, summary.ix[-1:,'cash':]
