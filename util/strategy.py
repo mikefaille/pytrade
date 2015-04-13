@@ -49,7 +49,7 @@ class Strategy:
                                  end=end)
         orders=np.zeros(n)
         for i in range(n):
-            start_i = start-timedelta(days=cls.window)
+            start_i = start+timedelta(days=-cls.window+i)
             end_i = start+timedelta(days=i)
             data_i = data[start_i:end_i][cls.field]
             order = cls.trend_order(data_i, segments=cls.window/5)

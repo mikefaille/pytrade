@@ -14,7 +14,7 @@ else:
 
 eval = strategy.Eval(field='Close', months=12, 
                      init_cash=35000, init_shares=100, min_trade=10,
-                     min_shares=0, min_cash=0,
+                     min_shares=None, min_cash=None,
                      verbose=True, debug=True);
 #eval.set_momentums('double','double')
 eval.set_momentums('log','log')
