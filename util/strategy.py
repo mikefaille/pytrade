@@ -3,7 +3,9 @@ import pandas as pd
 from filter import movingaverage
 import math
 from trendy import segtrends
-
+import pandas.io.data as pdata
+from datetime import timedelta
+from datetime import date
 #!pip install mlboost
 from mlboost.core.pphisto import SortHistogram
 
@@ -18,18 +20,82 @@ double_momentum = lambda previous: 2*abs(previous)
 exp_momentum = lambda previous: round(math.pow(abs(previous), 2))
 no_momentum = lambda previous:round(abs(previous))
 
+class Strategy:
+    window = 15
+    field = 'Close'
+    
+    @classmethod
+    def apply(cls, stock, data=None, verbose=False):
+        ''' return buy (1) or sale (-1) '''
+        if data==None:
+            start= date.today()-timedelta(days=cls.window)
+            end = date.today()-timedelta(days=1)
+            data = pdata.DataReader(stock, "yahoo", start, end) 
+        price = data[cls.field]
+        order = cls.trend_order(price, segments=cls.window/5)
+        return order
+
+    @classmethod
+    def simulate(cls, stock, start, end=None, verbose=True):
+        ''' start is a datetime or nb days prior to now '''
+        end = end if end!=None else date.today()-timedelta(days=1)
+        if isinstance(start, int):
+            start = end-timedelta(days=start)
+        # get data
+        n = (end-start).days
+        # add required padding 
+        data =  pdata.DataReader(stock, "yahoo", 
+                                 start=start-timedelta(days=cls.window),
+                                 end=end)
+        orders=[]
+        for i in range(n):
+            start_i = start-timedelta(days=cls.window)
+            end_i = start+timedelta(days=i)
+            data_i = data[start_i:end_i][cls.field]
+            order = cls.trend_order(data_i, segments=cls.window/5)
+            orders.append(order)
+            if verbose:
+                print end_i+timedelta(days=1), order
+        return orders
+
+            
+
+    @classmethod
+    def trend_order(cls, y, segments=2, window=7):
+        ''' generate orders from segtrends '''
+        x_maxima, maxima, x_minima, minima = segtrends(y, segments, window)
+        n = len(y)
+        movy = sum(y[-window:])/len(y[-window:]) 
+        
+        # get 2 latest support point y values prior to x
+        pmin = list(minima[-2:])
+        pmax = list(maxima[-2:])
+        # sell if support slop is negative
+        min_sell = True if ((len(pmin)==2) and (pmin[1]-pmin[0])<0) else False 
+        max_sell = True if ((len(pmax)==2) and (pmax[1]-pmax[0])<0) else False 
+        # if support down, sell
+        buy = -1 if (min_sell and max_sell) else 0
+        # buy only if lower then moving average else sale
+        buy = 1 if ((buy == 0) and (y[-1]<movy)) else -1
+    
+        return buy
+
 class Eval:
     momentum = log_momentum
     ''' construct a strategy evaluator '''
-    def __init__(self, field='open', months=12, initialCash=20000, 
-                 min_trade=30, min_shares=0, min_cash=0, 
+    def __init__(self, field='Close', months=12, 
+                 init_cash=20000, init_shares=30, min_trade=30, 
+                 min_shares=0, min_cash=0, trans_fees=10, 
                  verbose=False, debug=False):
+        ''' min trade is either or % in initial_cash or a number of shares '''
         self.field=field
         self.months=months
-        self.initialCash = initialCash
-        self.min_trade = min_trade
+        self.init_cash = init_cash
+        self.init_shares = init_shares
+        self.min_trade = min_trade #if isinstance(min_trade, int) else int(min_trade*init_cash)
         self.min_shares = min_shares
         self.min_cash = min_cash
+        self.trans_fees = trans_fees
         self.verbose = verbose
         self.debug = debug
 
@@ -56,9 +122,10 @@ class Eval:
     
         # get data
         n = int((5*4)*self.months)
-        #x = pd.DataReader?
-        #x = pd.DataReader("AAPL", "google")
-        price = yahoo.getHistoricData(self.stockname)[self.field][-n:] 
+        
+        data = pdata.DataReader(self.stockname, "yahoo")
+        #price = yahoo.getHistoricData(self.stockname)[self.field][-n:] 
+        price = data[self.field][-n:] 
         
         # apply the strategy
         if strategy == 'trends':
@@ -74,9 +141,10 @@ class Eval:
         self.signal = self.orders2strategy(self.orders, price, self.min_trade)
         
         # run the backtest
-        self.backtest = bt.Backtest(price, self.signal, initialCash=self.initialCash, 
-                                    signalType=signalType, initialShares=self.min_shares,
-                                    min_cash=self.min_cash)
+        self.backtest = bt.Backtest(price, self.signal, signalType=signalType,
+                                    initialCash=self.init_cash, initialShares=self.init_shares,
+                                    min_cash=self.min_cash, min_shares=self.min_shares,
+                                    trans_fees=self.trans_fees)
         
         if charts:
             self.visu(save)
@@ -147,8 +215,8 @@ class Eval:
             buy = -1 if (min_sell and max_sell) else 0
             # buy only if lower the moving average else sale
             buy = 1 if ((buy == 0) and (y[i]<movy[i])) else -1
-            # sell only if ...
-            buy= -1 if ((buy == -1) and y[i]>last_buy) else 1
+            # sell only if ... # MUCH BETTER WITHOUT IT
+            #buy= -1 if ((buy == -1) and y[i]>last_buy) else 1
       
             buy_price_dec = y[i]<last_buy
             sale_price_dec = y[i]<last_sale
@@ -200,4 +268,6 @@ class Eval:
 
 if __name__ == "__main__":
     #eval(charts=True)
+    print Strategy.apply('TSLA')
+    #Strategy.simulate('TSLA', 30)
     pass

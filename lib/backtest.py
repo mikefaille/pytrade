@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import sys
 import numpy as np
 
-def tradeBracket(price,entryBar,upper=None, lower=None, timeout=None):
+def tradeBracket(price, entryBar, upper=None, lower=None, timeout=None):
     '''
     trade a  bracket on price series, return price delta and exit bar #
     Input
@@ -62,8 +62,10 @@ def tradeBracket(price,entryBar,upper=None, lower=None, timeout=None):
 class Backtest(object):
     """ Backtest class, simple vectorized one. Works with pandas objects.
     """    
-    def __init__(self, price, signal, signalType='capital', initialCash = 0, 
-                 initialShares=0, roundShares=True, min_shares=0, min_cash=0):
+    def __init__(self, price, signal, signalType='capital', 
+                 initialCash = 0, initialShares=0, 
+                 min_shares=0, min_cash=0, trans_fees=10,
+                 roundShares=True):
         """
         Arguments:
         
@@ -82,11 +84,11 @@ class Backtest(object):
                 if min_shares!=None and trade<0 and (shares+trade)<=min_shares:
                     self.trades[i]=-(shares+min_shares)
                 # check you can really buy shares
-                elif min_cash!=None and trade>0 and (trade*price[i]>cash):
-                    self.trades[i]=round(cash/price[i])
+                elif min_cash!=None and trade>0 and (trade*price[i]+trans_fees>cash):
+                    self.trades[i]=round((cash-trans_fees)/price[i])
                 
                 shares+=self.trades[i]
-                cash+=-self.trades[i]*price[i]
+                cash-=self.trades[i]*price[i]+trans_fees
                 if verbose:
                     print i, trade, "->", self.trades[i], shares
 
@@ -119,13 +121,14 @@ class Backtest(object):
         
         if min_shares!=None or min_cash!=None:
             constraints(min_shares, min_cash)
+        else:
+            # add trade fees
+            tradeIdx = self.trades != 0 
+            self.signal[tradeIdx]+=trans_fees
 
         self.data['trades'] = self.trades
         self.data['shares'] = self.trades.cumsum()+initialShares
         self.data['value'] = self.data['shares'] * self.data['price']
-        
-        #for i in range(len(self.trades)):
-        #    print i, self.trades[i], self.data['shares'][i]
 
         delta = self.data['shares'].diff() # shares bought sold
         

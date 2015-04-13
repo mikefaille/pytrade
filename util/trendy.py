@@ -62,7 +62,7 @@ def gentrends(x, window=1/3.0, charts=True):
 
     return trends, maxslope, minslope
 
-def segtrends(x, segments=2, charts=True, window=7, title=None):
+def segtrends(x, segments=2, charts=False, window=7, title=None):
     """
     Turn minitrends to iterative process more easily adaptable to
     implementation in simple trading systems; allows backtesting functionality.

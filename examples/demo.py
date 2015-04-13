@@ -12,8 +12,8 @@ else:
     #stock='BP' # oil
     stock = 'TSLA'
 
-eval = strategy.Eval(field='close', months=12, 
-                     initialCash=35000, min_trade=40, 
+eval = strategy.Eval(field='Close', months=12, 
+                     init_cash=35000, init_shares=40, min_trade=40,
                      min_shares=0, min_cash=0,
                      verbose=True, debug=True);
 #eval.set_momentums('double','double')
