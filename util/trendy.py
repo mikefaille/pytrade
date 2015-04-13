@@ -62,7 +62,7 @@ def gentrends(x, window=1/3.0, charts=True):
 
     return trends, maxslope, minslope
 
-def segtrends(x, segments=2, charts=False, window=7, title=None):
+def segtrends(x, segments=2, window=7, charts=False, title=None):
     """
     Turn minitrends to iterative process more easily adaptable to
     implementation in simple trading systems; allows backtesting functionality.
@@ -105,11 +105,13 @@ def segtrends(x, segments=2, charts=False, window=7, title=None):
 
     if charts: 
         import matplotlib.pyplot as plt
-        plt.plot(range(n), movy, 'b')
+        #plt.plot(range(n), movy, 'b')
+        plt.plot(range(n), x, 'k')
         plt.plot(x_maxima, maxima, 'g')
         plt.plot(x_minima, minima, 'r')
         if title:
             plt.title(title)
+        plt.show()
 
     # OUTPUT
     return x_maxima, maxima, x_minima, minima

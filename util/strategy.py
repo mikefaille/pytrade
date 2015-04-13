@@ -21,7 +21,7 @@ exp_momentum = lambda previous: round(math.pow(abs(previous), 2))
 no_momentum = lambda previous:round(abs(previous))
 
 class Strategy:
-    window = 15
+    window = 21
     field = 'Close'
     
     @classmethod
@@ -36,7 +36,7 @@ class Strategy:
         return order
 
     @classmethod
-    def simulate(cls, stock, start, end=None, verbose=True):
+    def simulate(cls, stock, start, end=None, verbose=False, charts=False):
         ''' start is a datetime or nb days prior to now '''
         end = end if end!=None else date.today()-timedelta(days=1)
         if isinstance(start, int):
@@ -47,36 +47,57 @@ class Strategy:
         data =  pdata.DataReader(stock, "yahoo", 
                                  start=start-timedelta(days=cls.window),
                                  end=end)
-        orders=[]
+        orders=np.zeros(n)
         for i in range(n):
             start_i = start-timedelta(days=cls.window)
             end_i = start+timedelta(days=i)
             data_i = data[start_i:end_i][cls.field]
             order = cls.trend_order(data_i, segments=cls.window/5)
-            orders.append(order)
+            orders[i]=order
             if verbose:
                 print end_i+timedelta(days=1), order
-        return orders
 
+        if charts:
+            p = data[cls.field]
+            indices = {'g^': orders[orders > 0].index , 
+                       'ko': orders[orders == 0].index, 
+                       'rv': orders[orders < 0].index}
+            
+            
+            for style, idx in indices.iteritems():
+                if len(idx) > 0:
+                    p[idx].plot(style=style)
+
+            import matplotlib.pyplot as plt
+            plt.title("Orders for %s" %stock)
+            plt.show()
             
 
+        return orders
+
+
     @classmethod
-    def trend_order(cls, y, segments=2, window=7):
+    def trend_order(cls, y, segments=2, window=7, charts=False):
         ''' generate orders from segtrends '''
-        x_maxima, maxima, x_minima, minima = segtrends(y, segments, window)
+        x_maxima, maxima, x_minima, minima = segtrends(y, segments, window, charts=charts)
+
         n = len(y)
-        movy = sum(y[-window:])/len(y[-window:]) 
         
         # get 2 latest support point y values prior to x
-        pmin = list(minima[-2:])
-        pmax = list(maxima[-2:])
+        pmin = minima[-2:]
+        pmax = maxima[-2:]
         # sell if support slop is negative
         min_sell = True if ((len(pmin)==2) and (pmin[1]-pmin[0])<0) else False 
-        max_sell = True if ((len(pmax)==2) and (pmax[1]-pmax[0])<0) else False 
+        max_sell = True if ((len(pmax)==2) and (pmax[1]-pmax[0])<0) else False  
         # if support down, sell
-        buy = -1 if (min_sell and max_sell) else 0
+        if (min_sell and max_sell):
+            buy = -1
+        else:
+            buy = 1
+        #buy = -1 if (min_sell and max_sell) else 0
+        
         # buy only if lower then moving average else sale
-        buy = 1 if ((buy == 0) and (y[-1]<movy)) else -1
+        #buy = 1 if ((buy == 0) and (y[-1]<movy)) else -1
     
         return buy
 
@@ -130,11 +151,12 @@ class Eval:
         # apply the strategy
         if strategy == 'trends':
             title = 'automatic strategy base %s' %stockname
-            self.orders = self.orders_from_trends(price, segments=n/5, 
-                                                  charts=(charts and self.debug), 
-                                                  buy_momentum=self.buy_momentum,
-                                                  sell_momentum=self.sell_momentum,
-                                                  title=title);
+            self.orders = Strategy.simulate(stockname, n)
+            #self.orders = self.orders_from_trends(price, segments=n/5, 
+            #                                      charts=(charts and self.debug), 
+            #                                      buy_momentum=self.buy_momentum,
+            #                                      sell_momentum=self.sell_momentum,
+            #                                      title=title);
         else:
             raise("unknown strategy '%s'" %strategy)
 
@@ -269,5 +291,5 @@ class Eval:
 if __name__ == "__main__":
     #eval(charts=True)
     print Strategy.apply('TSLA')
-    #Strategy.simulate('TSLA', 30)
+    print Strategy.simulate('TSLA', 300)
     pass
