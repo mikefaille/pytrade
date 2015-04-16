@@ -36,17 +36,16 @@ class Strategy:
         return order
 
     @classmethod
-    def simulate(cls, stock, start, end=None, verbose=False, charts=False):
+    def simulate(cls, stock, start, end=None, verbose=False, charts=True):
         ''' start is a datetime or nb days prior to now '''
         end = end if end!=None else date.today()-timedelta(days=1)
         if isinstance(start, int):
             start = end-timedelta(days=start)
-        # get data
-        n = (end-start).days
         # add required padding 
-        data =  pdata.DataReader(stock, "yahoo", 
-                                 start=start-timedelta(days=cls.window),
-                                 end=end)
+        data = pdata.DataReader(stock, "yahoo", 
+                                start=start-timedelta(days=cls.window),
+                                end=end)
+        n = len(data)
         orders=np.zeros(n)
         for i in range(n):
             start_i = start+timedelta(days=-cls.window+i)
@@ -57,11 +56,13 @@ class Strategy:
             if verbose:
                 print end_i+timedelta(days=1), order
 
+        
         if charts:
-            p = data[cls.field]
-            indices = {'g^': orders[orders > 0].index , 
-                       'ko': orders[orders == 0].index, 
-                       'rv': orders[orders < 0].index}
+            p = data[cls.field][-n:]
+            p.plot(style='x-')
+            indices = {'g^': np.where(orders > 0)[0], 
+                       'ko': np.where(orders == 0)[0], 
+                       'rv': np.where(orders < 0)[0]}
             
             
             for style, idx in indices.iteritems():
@@ -152,6 +153,7 @@ class Eval:
         if strategy == 'trends':
             title = 'automatic strategy base %s' %stockname
             self.orders = Strategy.simulate(stockname, n)
+            n = len(self.orders)
             #self.orders = self.orders_from_trends(price, segments=n/5, 
             #                                      charts=(charts and self.debug), 
             #                                      buy_momentum=self.buy_momentum,
@@ -159,8 +161,8 @@ class Eval:
             #                                      title=title);
         else:
             raise("unknown strategy '%s'" %strategy)
-
-        self.signal = self.orders2strategy(self.orders, price, self.min_trade)
+        
+        self.signal = self.orders2strategy(self.orders, price[-n:], self.min_trade)
         
         # run the backtest
         self.backtest = bt.Backtest(price, self.signal, signalType=signalType,

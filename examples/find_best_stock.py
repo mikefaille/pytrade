@@ -9,7 +9,7 @@ charts = False
 verbose = False
 months=12
 
-stocks = ["TSLA", "GS", "SCTY", "AMZN", "CSCO",'FB', 
+stocks = ["TSLA", "GS", "SCTY", "AMZN", "CSCO",'FB',
           'UTX','JCI',"GOOGL",'BP','MSFT', 'IBM','NUAN','YHOO']
 # add oil stock
 stocks.extend(["SU", 'TA', 'BP', 'XOM'])
