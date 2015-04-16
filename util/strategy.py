@@ -20,6 +20,22 @@ double_momentum = lambda previous: 2*abs(previous)
 exp_momentum = lambda previous: round(math.pow(abs(previous), 2))
 no_momentum = lambda previous:round(abs(previous))
 
+def plot_orders(data, orders, stockname, show=True):
+    data.plot(style='x-')
+    indices = {'g^': np.where(orders > 0)[0], 
+               'ko': np.where(orders == 0)[0], 
+               'rv': np.where(orders < 0)[0]}
+    
+    
+    for style, idx in indices.iteritems():
+        if len(idx) > 0:
+            data[idx].plot(style=style)
+            
+    import matplotlib.pyplot as plt
+    plt.title("Orders for %s" %stockname)
+    if show:
+        plt.show()
+
 class Strategy:
     window = 21
     field = 'Close'
@@ -55,26 +71,12 @@ class Strategy:
             orders[i]=order
             if verbose:
                 print end_i+timedelta(days=1), order
-
         
         if charts:
             p = data[cls.field][-n:]
-            p.plot(style='x-')
-            indices = {'g^': np.where(orders > 0)[0], 
-                       'ko': np.where(orders == 0)[0], 
-                       'rv': np.where(orders < 0)[0]}
+            plot_orders(p, orders, stock)
             
-            
-            for style, idx in indices.iteritems():
-                if len(idx) > 0:
-                    p[idx].plot(style=style)
-
-            import matplotlib.pyplot as plt
-            plt.title("Orders for %s" %stock)
-            plt.show()
-            
-
-        return orders
+        return orders, data
 
 
     @classmethod
@@ -95,10 +97,6 @@ class Strategy:
             buy = -1
         else:
             buy = 1
-        #buy = -1 if (min_sell and max_sell) else 0
-        
-        # buy only if lower then moving average else sale
-        #buy = 1 if ((buy == 0) and (y[-1]<movy)) else -1
     
         return buy
 
@@ -145,15 +143,22 @@ class Eval:
         # get data
         n = int((5*4)*self.months)
         
-        data = pdata.DataReader(self.stockname, "yahoo")
+        self.data = pdata.DataReader(self.stockname, "yahoo")
         #price = yahoo.getHistoricData(self.stockname)[self.field][-n:] 
-        price = data[self.field][-n:] 
+        price = self.data[self.field][-n:] 
         
         # apply the strategy
         if strategy == 'trends':
             title = 'automatic strategy base %s' %stockname
-            self.orders = Strategy.simulate(stockname, n)
+            self.orders, self.data = Strategy.simulate(stockname, n)
             n = len(self.orders)
+            price = self.data[self.field]
+            self.BackTest(self.orders)
+            plot_orders(price, self.data['trades'], stockname, show=False)
+            #self.data['trades'].plot()
+            self.data['pnl'].plot()
+            import matplotlib.pyplot as plt
+            plt.show()
             #self.orders = self.orders_from_trends(price, segments=n/5, 
             #                                      charts=(charts and self.debug), 
             #                                      buy_momentum=self.buy_momentum,
@@ -174,6 +179,51 @@ class Eval:
             self.visu(save)
 
         return self.backtest.data
+
+    def BackTest(self, orders, buy_field='High', sell_field='Low'):
+        ''' price field = Open, High, Low, Close, Adj Close ''' 
+        n = len(orders)
+        cash = self.init_cash
+        shares = self.init_shares
+        self.shares = np.zeros(n);self.data['shares'] = self.shares
+        self.cash = np.zeros(n);self.data['cash'] = self.cash
+        self.trades = np.zeros(n);self.data['trades'] = self.trades
+
+        def momentum(orders, i):
+            ''' TODO: finish '''
+            if i>1:
+                if orders[i]==orders[i-1]:
+                    if orders[i]>0:
+                        return
+                    
+
+        for i, order in enumerate(orders):
+            trade = (order*self.min_trade)
+            # if buy
+            if order>0:
+                buy_price = self.data[buy_field][i]
+                cost = trade*buy_price + self.trans_fees
+                if cost > cash:
+                    trade = (cash-self.trans_fees)/buy_price
+                    cost = trade*buy_price + self.trans_fees
+                # update cash 
+                cash -= cost
+            else: #sell 
+                if trade>shares:
+                    trade = shares
+                sell_price = self.data[sell_field][i]
+                price = trade*sell_price + self.trans_fees
+                cash += price
+            # update shares
+            shares += trade
+            self.trades[i] = trade
+            self.shares[i] = shares
+            self.cash[i] = cash
+
+        # create missing fields
+        self.data['value'] = self.data['shares'] * self.data['Close']
+        self.data['pnl'] = self.data['cash']+self.data['value']
+        
 
     def visu(self, save=False):
         from pylab import title, figure, savefig, subplot, show
