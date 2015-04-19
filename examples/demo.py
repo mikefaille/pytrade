@@ -13,7 +13,7 @@ else:
     stock = 'TSLA'
 
 eval = strategy.Eval(field='Close', months=12, 
-                     init_cash=35000, init_shares=100, min_trade=10,
+                     init_cash=35000, init_shares=40, min_trade=10,
                      min_shares=0, min_cash=0,
                      verbose=True, debug=True);
 #eval.set_momentums('double','double')
@@ -21,4 +21,10 @@ eval.set_momentums('log','log')
 #eval.set_momentums('exp','exp')
 summary = eval.run(stock, charts=True, signalType='orders', save=False)
 #summary.to_csv('%s.csv' %stock)
-print stock, summary.ix[-1:,'cash':]
+print stock
+print "Start\n",summary.ix[0]#:,'cash':]
+print "end",summary.ix[-1]
+#print summary
+summary['pnl'].plot()
+import pylab
+pylab.show()

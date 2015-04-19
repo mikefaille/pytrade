@@ -4,6 +4,7 @@ from filter import movingaverage
 import math
 from trendy import segtrends
 import pandas.io.data as pdata
+from pandas.core.frame import DataFrame
 from datetime import timedelta
 from datetime import date
 #!pip install mlboost
@@ -41,9 +42,9 @@ class Strategy:
     field = 'Close'
     
     @classmethod
-    def apply(cls, stock, data=None, verbose=False):
+    def apply(cls, stock, data=None):
         ''' return buy (1) or sale (-1) '''
-        if data==None:
+        if not isinstance(data, DataFrame):
             start= date.today()-timedelta(days=cls.window)
             end = date.today()-timedelta(days=1)
             data = pdata.DataReader(stock, "yahoo", start, end) 
@@ -52,7 +53,7 @@ class Strategy:
         return order
 
     @classmethod
-    def simulate(cls, stock, start, end=None, verbose=False, charts=True):
+    def simulate(cls, stock, start, end=None, verbose=False, charts=False):
         ''' start is a datetime or nb days prior to now '''
         end = end if end!=None else date.today()-timedelta(days=1)
         if isinstance(start, int):
@@ -66,8 +67,8 @@ class Strategy:
         for i in range(n):
             start_i = start+timedelta(days=-cls.window+i)
             end_i = start+timedelta(days=i)
-            data_i = data[start_i:end_i][cls.field]
-            order = cls.trend_order(data_i, segments=cls.window/5)
+            data_i = data[start_i:end_i]
+            order = cls.apply(stock, data_i)
             orders[i]=order
             if verbose:
                 print end_i+timedelta(days=1), order
@@ -154,11 +155,12 @@ class Eval:
             n = len(self.orders)
             price = self.data[self.field]
             self.BackTest(self.orders)
-            plot_orders(price, self.data['trades'], stockname, show=False)
+            plot_orders(price, self.data['trade'], stockname, show=True)
+            #print self.data.ix[:,['shares', 'cash', 'trade', 'Adj Close', 'value', 'pnl']]
+            return self.data
             #self.data['trades'].plot()
-            self.data['pnl'].plot()
-            import matplotlib.pyplot as plt
-            plt.show()
+            #import matplotlib.pyplot as plt
+            #plt.show()
             #self.orders = self.orders_from_trends(price, segments=n/5, 
             #                                      charts=(charts and self.debug), 
             #                                      buy_momentum=self.buy_momentum,
@@ -167,63 +169,77 @@ class Eval:
         else:
             raise("unknown strategy '%s'" %strategy)
         
-        self.signal = self.orders2strategy(self.orders, price[-n:], self.min_trade)
+        #self.signal = self.orders2strategy(self.orders, price[-n:], self.min_trade)
         
         # run the backtest
-        self.backtest = bt.Backtest(price, self.signal, signalType=signalType,
-                                    initialCash=self.init_cash, initialShares=self.init_shares,
-                                    min_cash=self.min_cash, min_shares=self.min_shares,
-                                    trans_fees=self.trans_fees)
+        #self.backtest = bt.Backtest(price, self.signal, signalType=signalType,
+        #                            initialCash=self.init_cash, initialShares=self.init_shares,
+        #                            min_cash=self.min_cash, min_shares=self.min_shares,
+        #                            trans_fees=self.trans_fees)
         
-        if charts:
-            self.visu(save)
+        #if charts:
+        #    self.visu(save)
 
-        return self.backtest.data
+        #return self.backtest.data
 
-    def BackTest(self, orders, buy_field='High', sell_field='Low'):
+    def BackTest(self, orders, buy_field='High', sell_field='Low', verbose=False):
         ''' price field = Open, High, Low, Close, Adj Close ''' 
         n = len(orders)
         cash = self.init_cash
         shares = self.init_shares
-        self.shares = np.zeros(n);self.data['shares'] = self.shares
-        self.cash = np.zeros(n);self.data['cash'] = self.cash
-        self.trades = np.zeros(n);self.data['trades'] = self.trades
-
+        fees=0
+        self.shares = np.zeros(n)
+        self.cash = np.zeros(n)
+        self.trades = np.zeros(n)
+        self.fees = np.zeros(n)
         def momentum(orders, i):
             ''' TODO: finish '''
             if i>1:
                 if orders[i]==orders[i-1]:
                     if orders[i]>0:
                         return
-                    
-
+        if verbose:
+            print "#\tcash\ttrade\tshares\tprice\tvalue"
+            price = self.data['Adj Close'][0]
+            value = cash+price*shares
+            print "\t".join([str(el) for el in (0, cash, 0, shares, price, value)])
+                        
         for i, order in enumerate(orders):
             trade = (order*self.min_trade)
+            if order!=0:
+                fees+=self.trans_fees
             # if buy
             if order>0:
                 buy_price = self.data[buy_field][i]
-                cost = trade*buy_price + self.trans_fees
-                if cost > cash:
-                    trade = (cash-self.trans_fees)/buy_price
-                    cost = trade*buy_price + self.trans_fees
-                # update cash 
-                cash -= cost
-            else: #sell 
+                trade_value = trade*buy_price + self.trans_fees
+                if trade_value > cash:
+                    trade = int((cash-self.trans_fees)/buy_price)
+                    trade_value = trade*buy_price + self.trans_fees
+            elif order<0: #sell 
                 if trade>shares:
-                    trade = shares
+                    trade = -shares
                 sell_price = self.data[sell_field][i]
-                price = trade*sell_price + self.trans_fees
-                cash += price
+                trade_value = trade*sell_price + self.trans_fees
             # update shares
             shares += trade
+            cash -= trade_value
             self.trades[i] = trade
             self.shares[i] = shares
             self.cash[i] = cash
+            self.fees[i] = fees
+            if verbose:
+                price = self.data['Adj Close'][i]
+                value = cash+price*shares
+                print "\t".join([str(el) for el in (i+1, cash, trade, shares, price, value)])
 
         # create missing fields
-        self.data['value'] = self.data['shares'] * self.data['Close']
-        self.data['pnl'] = self.data['cash']+self.data['value']
-        
+        self.data['shares'] = self.shares
+        self.data['cash'] = self.cash
+        self.data['trade'] = self.trades
+        self.data['fees'] = self.fees
+        self.data['value'] = self.data['shares'] * self.data['Adj Close']
+        self.data['total'] = self.data['cash']+self.data['value']
+        self.data['pnl'] = self.data['total'].diff()
 
     def visu(self, save=False):
         from pylab import title, figure, savefig, subplot, show
