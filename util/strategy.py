@@ -2,58 +2,35 @@ import numpy as np
 import pandas as pd
 from filter import movingaverage
 import math
-from trendy import segtrends
+
 import pandas.io.data as pdata
-from pandas.core.frame import DataFrame
 from datetime import timedelta
 from datetime import date
+from visu import plot_orders
 #!pip install mlboost
 from mlboost.core.pphisto import SortHistogram
 
 # little hack to make in working inside heroku submodule
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
-      
-import lib.yahooFinance as yahoo 
-import lib.backtest as bt
+
 log_momentum = lambda previous: round(math.log(1+2*abs(previous))+1)
 double_momentum = lambda previous: 2*abs(previous)
 exp_momentum = lambda previous: round(math.pow(abs(previous), 2))
 no_momentum = lambda previous:round(abs(previous))
 
-def plot_orders(data, orders, stockname, show=True):
-    data.plot(style='x-')
-    indices = {'g^': np.where(orders > 0)[0], 
-               'ko': np.where(orders == 0)[0], 
-               'rv': np.where(orders < 0)[0]}
-    
-    
-    for style, idx in indices.iteritems():
-        if len(idx) > 0:
-            data[idx].plot(style=style)
-            
-    import matplotlib.pyplot as plt
-    plt.title("Orders for %s" %stockname)
-    if show:
-        plt.show()
+import abc
 
-class Strategy:
-    window = 21
-    field = 'Close'
-    
-    @classmethod
-    def apply(cls, stock, data=None):
-        ''' return buy (1) or sale (-1) '''
-        if not isinstance(data, DataFrame):
-            start= date.today()-timedelta(days=cls.window)
-            end = date.today()-timedelta(days=1)
-            data = pdata.DataReader(stock, "yahoo", start, end) 
-        price = data[cls.field]
-        order = cls.trend_order(price, segments=cls.window/5)
-        return order
+class Strategy(object):
+    __metaclass__ = abc.ABCMeta
+
+    @abc.abstractmethod
+    def apply(self, stock, data=None):
+        """ return buy(1) or sell(-1) """
+        return
 
     @classmethod
-    def simulate(cls, stock, start, end=None, verbose=False, charts=False):
+    def simulate(cls, stock, start, end=None, verbose=True, charts=True):
         ''' start is a datetime or nb days prior to now '''
         end = end if end!=None else date.today()-timedelta(days=1)
         if isinstance(start, int):
@@ -79,27 +56,7 @@ class Strategy:
             
         return orders, data
 
-
-    @classmethod
-    def trend_order(cls, y, segments=2, window=7, charts=False):
-        ''' generate orders from segtrends '''
-        x_maxima, maxima, x_minima, minima = segtrends(y, segments, window, charts=charts)
-
-        n = len(y)
-        
-        # get 2 latest support point y values prior to x
-        pmin = minima[-2:]
-        pmax = maxima[-2:]
-        # sell if support slop is negative
-        min_sell = True if ((len(pmin)==2) and (pmin[1]-pmin[0])<0) else False 
-        max_sell = True if ((len(pmax)==2) and (pmax[1]-pmax[0])<0) else False  
-        # if support down, sell
-        if (min_sell and max_sell):
-            buy = -1
-        else:
-            buy = 1
-    
-        return buy
+from trendStrategy import TrendStrategy
 
 class Eval:
     momentum = log_momentum
@@ -143,44 +100,43 @@ class Eval:
     
         # get data
         n = int((5*4)*self.months)
-        
-        self.data = pdata.DataReader(self.stockname, "yahoo")
-        #price = yahoo.getHistoricData(self.stockname)[self.field][-n:] 
-        price = self.data[self.field][-n:] 
-        
+                
         # apply the strategy
         if strategy == 'trends':
             title = 'automatic strategy base %s' %stockname
-            self.orders, self.data = Strategy.simulate(stockname, n)
+            self.orders, self.data = TrendStrategy.simulate(stockname, n)
             n = len(self.orders)
             price = self.data[self.field]
             self.BackTest(self.orders)
             plot_orders(price, self.data['trade'], stockname, show=True)
             #print self.data.ix[:,['shares', 'cash', 'trade', 'Adj Close', 'value', 'pnl']]
             return self.data
-            #self.data['trades'].plot()
-            #import matplotlib.pyplot as plt
-            #plt.show()
-            #self.orders = self.orders_from_trends(price, segments=n/5, 
-            #                                      charts=(charts and self.debug), 
-            #                                      buy_momentum=self.buy_momentum,
-            #                                      sell_momentum=self.sell_momentum,
-            #                                      title=title);
+
+        elif strategy == 'old':
+            self.data = pdata.DataReader(self.stockname, "yahoo")
+            price = self.data[self.field][-n:] 
+        
+            orders = self.orders_from_trends(price, segments=n/5, 
+                                             charts=(charts and self.debug), 
+                                             buy_momentum=self.buy_momentum,
+                                             sell_momentum=self.sell_momentum,
+                                             title='title');
+            signal = self.orders2strategy(orders, price[-n:], self.min_trade)
+            
+            # run the backtest
+            import lib.backtest as bt
+            self.backtest = bt.Backtest(price, signal, signalType=signalType,
+                                        initialCash=self.init_cash, initialShares=self.init_shares,
+                                        min_cash=self.min_cash, min_shares=self.min_shares,
+                                        trans_fees=self.trans_fees)
+        
+            if True:
+                self.visu(save)
+
+            return self.backtest.data
         else:
             raise("unknown strategy '%s'" %strategy)
         
-        #self.signal = self.orders2strategy(self.orders, price[-n:], self.min_trade)
-        
-        # run the backtest
-        #self.backtest = bt.Backtest(price, self.signal, signalType=signalType,
-        #                            initialCash=self.init_cash, initialShares=self.init_shares,
-        #                            min_cash=self.min_cash, min_shares=self.min_shares,
-        #                            trans_fees=self.trans_fees)
-        
-        #if charts:
-        #    self.visu(save)
-
-        #return self.backtest.data
 
     def BackTest(self, orders, buy_field='High', sell_field='Low', verbose=False):
         ''' price field = Open, High, Low, Close, Adj Close ''' 
@@ -192,20 +148,27 @@ class Eval:
         self.cash = np.zeros(n)
         self.trades = np.zeros(n)
         self.fees = np.zeros(n)
+
         def momentum(orders, i):
-            ''' TODO: finish '''
+            order = orders[i]
             if i>1:
-                if orders[i]==orders[i-1]:
-                    if orders[i]>0:
-                        return
+                if order==orders[i-1]:
+                    if order>0:
+                        orders[i] = self.buy_momentum(orders[i-1])
+                    elif order<0:
+                        orders[i] = self.sell_momentum(orders[i-1])
+            return orders[i]
+
         if verbose:
             print "#\tcash\ttrade\tshares\tprice\tvalue"
             price = self.data['Adj Close'][0]
             value = cash+price*shares
             print "\t".join([str(el) for el in (0, cash, 0, shares, price, value)])
                         
-        for i, order in enumerate(orders):
+        for i in range(len(orders)):
+            order = momentum(orders, i)
             trade = (order*self.min_trade)
+            trade_value = 0
             if order!=0:
                 fees+=self.trans_fees
             # if buy

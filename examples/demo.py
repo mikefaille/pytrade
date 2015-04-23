@@ -12,7 +12,7 @@ else:
     #stock='BP' # oil
     stock = 'TSLA'
 
-eval = strategy.Eval(field='Close', months=12, 
+eval = strategy.Eval(field='Close', months=1, 
                      init_cash=35000, init_shares=40, min_trade=10,
                      min_shares=0, min_cash=0,
                      verbose=True, debug=True);
@@ -24,7 +24,8 @@ summary = eval.run(stock, charts=True, signalType='orders', save=False)
 print stock
 print "Start\n",summary.ix[0]#:,'cash':]
 print "end",summary.ix[-1]
-#print summary
+print summary
 summary['pnl'].plot()
+summary['total'].plot()
 import pylab
 pylab.show()
