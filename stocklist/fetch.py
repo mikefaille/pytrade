@@ -8,4 +8,7 @@ class Fetch(object):
         parser = Parse()
         
         url = filter.build_query_string(params)
-        results = parser.parse(url, [])
+	stocklist = []
+	stocklist = parser.parse(url, stocklist)
+	return stocklist	
+	
