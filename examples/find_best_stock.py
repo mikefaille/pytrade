@@ -22,6 +22,7 @@ parser.add_argument('--verbose', '-v', action="store_true", help='verbose')
 parser.add_argument('--debug', '-d', action="store_true", help='debug')
 parser.add_argument('--charts', '-c', action="store_true", help='show charts')
 parser.add_argument('--cat', default=None, type=int, help='fetch stocks from categy')
+parser.add_argument('--fetch_limit', default=None, type=int, help='fetch limit nb of stocks')
 
 args = parser.parse_args()
 eval = evaluate.Eval(field='Close', months=args.months, 
@@ -36,6 +37,8 @@ if args.cat!=None:
     #params is a list of tuples. More info on params can be found in stocklist/filters.py
     params = [('sc', args.cat)]
     stocks = fetch.fetch_stocks(params)
+    if args.fetch_limit!=None:
+        stocks=stocks[:args.fetch_limit]
 else:
     stocks = stocks
 
