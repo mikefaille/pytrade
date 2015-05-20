@@ -1,15 +1,8 @@
 ''' find the best stock from choices on which you should apply the strategy 
     base on historic data
 '''
-#!pip install mlboost
 from util import evaluate 
 reload(evaluate)
-
-stocks = ["TSLA", "GS", "SCTY", "AMZN", "CSCO",'FB',
-          'UTX','JCI',"GOOGL",'BP','MSFT', 'IBM','NUAN','YHOO']
-# add oil stock
-stocks.extend(["SU", 'TA', 'BP', 'XOM'])
-
 
 import argparse
 
@@ -23,12 +16,14 @@ parser.add_argument('--debug', '-d', action="store_true", help='debug')
 parser.add_argument('--charts', '-c', action="store_true", help='show charts')
 parser.add_argument('--cat', default=None, type=int, help='fetch stocks from categy')
 parser.add_argument('--fetch_limit', default=None, type=int, help='fetch limit nb of stocks')
+parser.add_argument('--momentums', default="log:log", help='momentums x:x (x=log, exp, double)')
+parser.add_argument('--test', action="store_true", help='test example stocks')
 
 args = parser.parse_args()
 eval = evaluate.Eval(field='Close', months=args.months, 
                      init_cash=args.init_cash, min_trade=args.min_trade, 
                      verbose=args.verbose, debug=args.debug);
-eval.set_momentums('double','double')
+eval.set_momentums(args.momentums)
 
 if args.cat!=None:
     print "category", args.cat
@@ -39,10 +34,14 @@ if args.cat!=None:
     stocks = fetch.fetch_stocks(params)
     if args.fetch_limit!=None:
         stocks=stocks[:args.fetch_limit]
+elif args.test:
+    stocks = ["TSLA", "GS", "SCTY", "AMZN", "CSCO",'FB',
+              'UTX','JCI',"GOOGL",'BP','MSFT', 'IBM','NUAN','YHOO']
+    # add oil stock
+    stocks.extend(["SU", 'TA', 'BP', 'XOM'])
 else:
-    stocks = stocks
-
+    stocks = args.stocks.split(',')
 
 # try current strategy on different stock
-out = eval.eval_best(stocks, charts=args.charts);
+out = eval.eval_best(stocks, charts=args.charts)
   

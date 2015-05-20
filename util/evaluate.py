@@ -43,7 +43,7 @@ class Eval:
         self.verbose = verbose
         self.debug = debug
 
-    def set_momentums(cls, buy='log', sell='log'):
+    def set_momentums(cls, buysell='log:log'):
         def get(name):
             if name == 'log':
                 return log_momentum
@@ -53,6 +53,7 @@ class Eval:
                 return exp_momentum
             else:
                 return no_momentum
+        buy, sell = buysell.split(":")
         cls.buy_momentum = get(buy)
         cls.sell_momentum = get(sell)
                     
@@ -172,7 +173,7 @@ class Eval:
         self.data['pnl'] = self.data['total'].diff()
 
     
-    def eval_best(self, stocks=["TSLA", "GS", "SCTY", "AMZN", "CSCO", 'UTX','JCI',"GOOGL",'AAPL','BP','MSFT'],  charts=False):
+    def eval_best(self, stocks=["TSLA", "GS"], charts=False):
         # try current strategy on different stock
         trademap = {}
         tradedetails = {}

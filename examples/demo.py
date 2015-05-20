@@ -17,7 +17,7 @@ eval = evaluate.Eval(field='Close', months=1,
             min_shares=0, min_cash=0,
             verbose=True, debug=True);
 #eval.set_momentums('double','double')
-eval.set_momentums('log','log')
+eval.set_momentums('log:log')
 #eval.set_momentums('exp','exp')
 summary = eval.run(stock, charts=True, signalType='orders', save=False)
 #summary.to_csv('%s.csv' %stock)
