@@ -21,9 +21,10 @@ no_momentum = lambda previous:round(abs(previous))
 
 import abc
 
-class Strategy(object):
+class Strategy:
     __metaclass__ = abc.ABCMeta
     field = 'Close'
+    window = 7
     @abc.abstractmethod
     def apply(self, stock, data=None):
         """ return buy(1) or sell(-1) """
@@ -104,8 +105,12 @@ class Eval:
                 
         # apply the strategy
         if strategy == 'trends':
+            strategy = TrendStrategy()
+
+        if isinstance(strategy, Strategy): 
+            
             title = 'automatic strategy base %s' %stockname
-            self.orders, self.data = TrendStrategy.simulate(stockname, n)
+            self.orders, self.data = Strategy.simulate(stockname, n)
             n = len(self.orders)
             price = self.data[self.field]
             self.BackTest(self.orders)
@@ -136,7 +141,7 @@ class Eval:
                 twp.visu(stockname, save)
                 
         else:
-            raise("unknown strategy '%s'" %strategy)
+            raise Exception("unknown strategy '%s'" %str(strategy))
         
 
     def BackTest(self, orders, buy_field='High', sell_field='Low', verbose=False):
@@ -229,6 +234,6 @@ class Eval:
 
 if __name__ == "__main__":
     #eval(charts=True)
-    print Strategy.apply('TSLA')
-    print Strategy.simulate('TSLA', 300)
+    print TrendStrategy.apply('TSLA')
+    print TrendStrategy.simulate('TSLA', 300)
     pass
