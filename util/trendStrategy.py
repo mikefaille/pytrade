@@ -3,6 +3,7 @@ from datetime import timedelta
 from datetime import date
 from strategy import Strategy 
 from pandas.core.frame import DataFrame
+import pandas.io.data as pdata
 from trendy import segtrends
 
 class TrendStrategy(Strategy):
