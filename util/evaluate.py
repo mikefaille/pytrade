@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from filter import movingaverage
 import math
+import logging
 
 import pandas.io.data as pdata
 from datetime import timedelta
@@ -177,11 +178,14 @@ class Eval:
         tradedetails = {}
 
         for i, stock in enumerate(stocks):
-            trade = self.run(stock, charts=charts)
-            if False:
-                print i, stock, trade.ix[-1:,'cash':]
-            trademap[stock] = trade[-1:]['pnl'][-1]
-            tradedetails[stock] = trade[-1:]
+            try:
+                trade = self.run(stock, charts=charts)
+                if False:
+                    print i, stock, trade.ix[-1:,'cash':]
+                trademap[stock] = trade[-1:]['pnl'][-1]
+                tradedetails[stock] = trade[-1:]
+            except Exception,ex:
+                logging.warning(ex)
         
         st = SortHistogram(trademap, False, True)
         
