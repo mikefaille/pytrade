@@ -28,7 +28,7 @@ class Strategy:
         return
 
     @classmethod
-    def simulate(cls, stock, start, end=None, verbose=True, charts=True):
+    def simulate(cls, stock, start, end=None, verbose=False, charts=True):
         ''' start is a datetime or nb days prior to now '''
         end = end if end!=None else date.today()-timedelta(days=1)
         if isinstance(start, int):

@@ -55,9 +55,9 @@ class Eval:
         cls.buy_momentum = get(buy)
         cls.sell_momentum = get(sell)
                     
-    def run(self, stockname, strategy='trends', signalType='shares', 
+    def run(self, stockname, strategy=TrendStrategy(), signalType='shares', 
             save=False, charts=True):
-        ''' run the evaluation (strategy = trends or old)'''
+        ''' run the evaluation (strategy = string (old) or Strategy object)'''
 
         self.stockname = stockname
         if self.verbose:
@@ -66,18 +66,15 @@ class Eval:
         # get data
         n = int((5*4)*self.months)
                 
-        # apply the strategy
-        if strategy == 'trends':
-            strategy = TrendStrategy()
-
         if isinstance(strategy, Strategy): 
             
             title = 'automatic strategy base %s' %stockname
-            self.orders, self.data = strategy.simulate(stockname, n)
+            self.orders, self.data = strategy.simulate(stockname, n, charts=charts)
             n = len(self.orders)
             price = self.data[self.field]
             self.BackTest(self.orders)
-            plot_orders(price, self.data['trade'], stockname, show=True)
+            if charts:
+                plot_orders(price, self.data['trade'], stockname, show=True)
             #print self.data.ix[:,['shares', 'cash', 'trade', 'Adj Close', 'value', 'pnl']]
             return self.data
 
@@ -100,7 +97,7 @@ class Eval:
                                        min_cash=self.min_cash, min_shares=self.min_shares,
                                        trans_fees=self.trans_fees)
             
-            if True:
+            if charts:
                 twp.visu(stockname, save)
                 
         else:
