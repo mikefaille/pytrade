@@ -2,8 +2,8 @@
     base on historic data
 '''
 #!pip install mlboost
-from util import strategy 
-reload(strategy)
+from util import evaluate 
+reload(evaluate)
 
 charts = False
 verbose = False
@@ -14,8 +14,8 @@ stocks = ["TSLA", "GS", "SCTY", "AMZN", "CSCO",'FB',
 # add oil stock
 stocks.extend(["SU", 'TA', 'BP', 'XOM'])
 
-eval = strategy.Eval(field='Close', months=months, 
-                     initialCash=10000, min_trade=40, 
+eval = evaluate.Eval(field='Close', months=months, 
+                     init_cash=10000, min_trade=40, 
                      verbose=verbose, debug=False);
 eval.set_momentums('double','double')
 # try current strategy on different stock
