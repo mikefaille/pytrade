@@ -77,11 +77,8 @@ class Eval:
             
             title = 'automatic strategy base %s' %stockname
             self.orders, self.data = strategy.simulate(stockname, n, charts=charts)
-            #self.data = data[data.index[1]:]
             self.BackTest(self.orders)
-            self.update_starting_point()
-            #start=self.data.index[0]-timedelta(days=1)
-            
+            self.update_starting_point()            
             
             if charts:
                 plot_orders(self.data[self.field], self.data['trade'], stockname, show=True)
@@ -114,7 +111,7 @@ class Eval:
             raise Exception("unknown strategy '%s'" %str(strategy))
         
 
-    def update_starting_point(self):
+    def update_starting_point(self, verbose=False):
         start = self.data.index[0]
         print "set starting point!"
         value = self.init_shares+self.data['Adj Close'][0]        
@@ -122,8 +119,8 @@ class Eval:
         self.data.set_value(start, 'shares', self.init_shares)
         self.data.set_value(start, 'value', value)
         self.data.set_value(start, 'total', self.init_cash+value)
-        #self.data.values.sort()
-        print self.data.ix[:, header]
+        if verbose:
+            print self.data.ix[:, header]
 
     def BackTest(self, orders, buy_field='High', sell_field='Low'):
         ''' price field = Open, High, Low, Close, Adj Close ''' 
