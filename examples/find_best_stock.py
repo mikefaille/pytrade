@@ -7,7 +7,7 @@ reload(evaluate)
 import argparse
 
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('--stocks', '-s', default=None, help='list of stocks (comma separated)')
+parser.add_argument('--stocks', '-s', default="TSLA", help='list of stocks (comma separated)')
 parser.add_argument('--months', '-m', default=12, help='history nb of months')
 parser.add_argument('--init_cash', default=10000, type=int, help='initial cash')
 parser.add_argument('--min_trade', default=40, type=int, help='min trade')

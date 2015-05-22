@@ -3,7 +3,7 @@ import pandas as pd
 from filter import movingaverage
 import math
 import logging
-
+import pandas as pd
 import pandas.io.data as pdata
 from datetime import timedelta
 from datetime import date
@@ -24,6 +24,11 @@ from strategy import Strategy
 # import strategies 
 from trendStrategy import TrendStrategy
 from twpStrategy import twpStrategy as twp
+
+pd.set_option('precision', 3) 
+pd.set_option('colheader_justify' ,'left')
+pd.set_option('expand_frame_repr' , False)
+header = ['cash', 'shares', 'value', 'trade', 'fees', 'Adj Close', 'total', 'pnl']
 
 class Eval:
     ''' construct a strategy evaluator '''
@@ -72,12 +77,15 @@ class Eval:
             
             title = 'automatic strategy base %s' %stockname
             self.orders, self.data = strategy.simulate(stockname, n, charts=charts)
-            n = len(self.orders)
-            price = self.data[self.field]
+            #self.data = data[data.index[1]:]
             self.BackTest(self.orders)
+            self.update_starting_point()
+            #start=self.data.index[0]-timedelta(days=1)
+            
+            
             if charts:
-                plot_orders(price, self.data['trade'], stockname, show=True)
-            #print self.data.ix[:,['shares', 'cash', 'trade', 'Adj Close', 'value', 'pnl']]
+                plot_orders(self.data[self.field], self.data['trade'], stockname, show=True)
+           
             return self.data
 
         elif strategy == 'old':
@@ -106,8 +114,20 @@ class Eval:
             raise Exception("unknown strategy '%s'" %str(strategy))
         
 
-    def BackTest(self, orders, buy_field='High', sell_field='Low', verbose=False):
+    def update_starting_point(self):
+        start = self.data.index[0]
+        print "set starting point!"
+        value = self.init_shares+self.data['Adj Close'][0]        
+        self.data.set_value(start, 'cash', self.init_cash)
+        self.data.set_value(start, 'shares', self.init_shares)
+        self.data.set_value(start, 'value', value)
+        self.data.set_value(start, 'total', self.init_cash+value)
+        #self.data.values.sort()
+        print self.data.ix[:, header]
+
+    def BackTest(self, orders, buy_field='High', sell_field='Low'):
         ''' price field = Open, High, Low, Close, Adj Close ''' 
+
         n = len(orders)
         cash = self.init_cash
         shares = self.init_shares
@@ -127,12 +147,6 @@ class Eval:
                         orders[i] = self.sell_momentum(orders[i-1])
             return orders[i]
 
-        if verbose:
-            print "#\tcash\ttrade\tshares\tprice\tvalue"
-            price = self.data['Adj Close'][0]
-            value = cash+price*shares
-            print "\t".join([str(el) for el in (0, cash, 0, shares, price, value)])
-                        
         for i in range(len(orders)):
             order = momentum(orders, i)
             trade = (order*self.min_trade)
@@ -158,10 +172,6 @@ class Eval:
             self.shares[i] = shares
             self.cash[i] = cash
             self.fees[i] = fees
-            if verbose:
-                price = self.data['Adj Close'][i]
-                value = cash+price*shares
-                print "\t".join([str(el) for el in (i+1, cash, trade, shares, price, value)])
 
         # create missing fields
         self.data['shares'] = self.shares
@@ -171,13 +181,14 @@ class Eval:
         self.data['value'] = self.data['shares'] * self.data['Adj Close']
         self.data['total'] = self.data['cash']+self.data['value']
         self.data['pnl'] = self.data['total'].diff()
+        if self.verbose:
+            print self.data.ix[:, header]
 
     
     def eval_best(self, stocks=["TSLA", "GS"], charts=False):
         # try current strategy on different stock
         trademap = {}
         tradedetails = {}
-
         for i, stock in enumerate(stocks):
             try:
                 trade = self.run(stock, charts=charts)
@@ -190,11 +201,12 @@ class Eval:
         
         st = SortHistogram(trademap, False, True)
         
-        print "Here are the Stocks sorted by PnL"
+        if len(stocks)>1:
+            print "Here are the Stocks sorted by PnL"
         for i,el in enumerate(st):
             stock, value = el
             print "#", i+1, stock
-            print tradedetails[stock]
+            print tradedetails[stock].ix[:,header]
         return st
 
 if __name__ == "__main__":
