@@ -33,7 +33,7 @@ header = ['cash', 'shares', 'value', 'trade', 'fees', 'Adj Close', 'total', 'pnl
 class Eval:
     ''' construct a strategy evaluator '''
     def __init__(self, field='Close', months=12, 
-                 init_cash=20000, init_shares=30, min_trade=30, 
+                 init_cash=20000, init_shares=30, min_trades=30, 
                  min_shares=0, min_cash=0, trans_fees=10, 
                  verbose=False, debug=False):
         ''' min trade is either or % in initial_cash or a number of shares '''
@@ -41,7 +41,7 @@ class Eval:
         self.months=months
         self.init_cash = init_cash
         self.init_shares = init_shares
-        self.min_trade = min_trade #if isinstance(min_trade, int) else int(min_trade*init_cash)
+        self.min_trades = min_trades #if isinstance(min_trade, int) else int(min_trade*init_cash)
         self.min_shares = min_shares
         self.min_cash = min_cash
         self.trans_fees = trans_fees
@@ -95,7 +95,7 @@ class Eval:
                                             buy_momentum=self.buy_momentum,
                                             sell_momentum=self.sell_momentum,
                                             title='title');
-            signal = twp.orders2strategy(orders, price[-n:], self.min_trade)
+            signal = twp.orders2strategy(orders, price[-n:], self.min_trades)
             
             # run the backtest
             import lib.backtest as bt
@@ -113,7 +113,6 @@ class Eval:
 
     def update_starting_point(self, verbose=False):
         start = self.data.index[0]
-        print "set starting point!"
         value = self.init_shares+self.data['Adj Close'][0]        
         self.data.set_value(start, 'cash', self.init_cash)
         self.data.set_value(start, 'shares', self.init_shares)
@@ -146,7 +145,7 @@ class Eval:
 
         for i in range(len(orders)):
             order = momentum(orders, i)
-            trade = (order*self.min_trade)
+            trade = (order*self.min_trades)
             trade_value = 0
             if order!=0:
                 fees+=self.trans_fees
@@ -154,11 +153,11 @@ class Eval:
             if order>0:
                 buy_price = self.data[buy_field][i]
                 trade_value = trade*buy_price + self.trans_fees
-                if trade_value > cash:
+                if (trade_value > cash) or (self.min_cash==None):
                     trade = int((cash-self.trans_fees)/buy_price)
                     trade_value = trade*buy_price + self.trans_fees
             elif order<0: #sell 
-                if trade>shares:
+                if trade>shares or (self.min_shares==None):
                     trade = -shares
                 sell_price = self.data[sell_field][i]
                 trade_value = trade*sell_price + self.trans_fees

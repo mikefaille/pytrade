@@ -55,6 +55,6 @@ class Strategy:
         
         if charts:
             p = data[cls.field][-n:]
-            plot_orders(p, orders, stock)
+            plot_orders(p, orders, stock + " (raw orders)")
             
         return orders, data[-n:]    
