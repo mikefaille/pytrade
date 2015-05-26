@@ -5,6 +5,7 @@ import math
 import pandas.io.data as pdata
 from datetime import timedelta, date
 from visu import plot_orders
+from util.cache import DataCache
 
 # little hack to make in working inside heroku submodule
 import os, sys
@@ -20,6 +21,8 @@ import abc
 class Strategy:
     __metaclass__ = abc.ABCMeta
     field = 'Close'
+    datacache = DataCache()
+
     @abc.abstractmethod
     def apply(self, stock, data=None):
         """ return buy(1) or sell(-1) """
@@ -37,9 +40,10 @@ class Strategy:
         ''' start is a datetime or nb days prior to now '''
         start, end = cls.get_start_end(start, end)
         # add required padding 
-        data = pdata.DataReader(stock, "yahoo", 
-                                start=start-timedelta(days=cls.window),
-                                end=end)
+        data = cls.datacache.DataReader(stock, "yahoo",
+                                        start=start-timedelta(days=cls.window),
+                                        end=end)
+                                
         n = len(data)-cls.window+1
         orders=np.zeros(n)
        

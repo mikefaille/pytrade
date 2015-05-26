@@ -4,12 +4,14 @@ from filter import movingaverage
 import math
 import logging
 import pandas as pd
-import pandas.io.data as pdata
+#import pandas.io.data as pdata
+from util.cache import DataCache
 from datetime import timedelta
 from datetime import date
 from visu import plot_orders
 #!pip install mlboost
 from mlboost.core.pphisto import SortHistogram
+
 
 # little hack to make in working inside heroku submodule
 import os, sys
@@ -24,6 +26,8 @@ from strategy import Strategy
 # import strategies 
 from trendStrategy import TrendStrategy
 from twpStrategy import twpStrategy as twp
+
+
 
 def get_strategy(name):
     if name=="trend":
@@ -99,7 +103,7 @@ class Eval:
 
         elif self.strategy == 'old':
             
-            data = pdata.DataReader(self.stockname, "yahoo")
+            data = self.strategy.datacache.DataReader(self.stockname, "yahoo") 
             price = data[self.field][-n:] 
             
             orders = twp.orders_from_trends(price, segments=n/5, 
