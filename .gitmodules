@@ -1,0 +1,4 @@
+[submodule "lib/bruces"]
+	path = lib/bruces
+	url = https://github.com/overridelogic/bruces.git
+	branch = v0.2.3-dev
