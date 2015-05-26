@@ -95,7 +95,7 @@ class Eval:
             if charts:
                 plot_orders(self.data[self.field], self.data['trade'], stockname, show=True)
            
-            return self.data
+            return self.data.ix[:, header]
 
         elif self.strategy == 'old':
             
@@ -125,7 +125,7 @@ class Eval:
 
     def update_starting_point(self, verbose=False):
         start = self.data.index[0]
-        value = self.init_shares+self.data['Adj Close'][0]        
+        value = self.init_shares*self.data['Adj Close'][0]        
         self.data.set_value(start, 'cash', self.init_cash)
         self.data.set_value(start, 'shares', self.init_shares)
         self.data.set_value(start, 'value', value)

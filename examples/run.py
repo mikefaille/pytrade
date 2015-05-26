@@ -1,3 +1,4 @@
+ #!/usr/bin/python
 ''' run does 3 things:
  #1) eval a strategy on a stock -> ./run.py -s TSLA (default)
  #2) find best stock:  ./run.py --stock TSLA,GS,SCTY,AMZN,TWTR
@@ -70,5 +71,6 @@ else:
     if args.charts:
         data['pnl'].plot()
         plt.show()
+    print data
     
   
