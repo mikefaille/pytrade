@@ -1,18 +1,17 @@
  #!/usr/bin/python
 ''' run does 3 things:
- #1) eval a strategy on a stock -> ./run.py -s TSLA (default)
- #2) find best stock:  ./run.py --stock TSLA,GS,SCTY,AMZN,TWTR
-                       ./run.py --cat 431 --fetch_limit 5
- #3) by or sale today: ./run.py --stock TSLA,GS,SCTY,AMZN,TWTR --now
-
-find the best stock from choices on which you should apply the strategy 
-    base on historic data
+ #1) eval a strategy on a stock -> ./run.py -s TSLA (default) \
+ #2) find best stock:  ./run.py --stock TSLA,GS,SCTY,AMZN,TWTR \
+                       ./run.py --cat 431 --fetch_limit 5 \
+ #3) by or sale today: ./run.py --stock TSLA,GS,SCTY,AMZN,TWTR --now \
+\
+find the best stock from choices on which you should apply the strategy \
+    base on historic data \
 '''
 from util import evaluate 
 reload(evaluate)
 import pandas as pd
 import argparse
-import matplotlib.pyplot as plt
 
 pd.set_option('precision', 3) 
 parser = argparse.ArgumentParser(description=__doc__)
@@ -69,8 +68,7 @@ elif len(stocks)>1:
 else:
     data = eval.run(stocks[0], charts=args.charts)
     if args.charts:
-        data['pnl'].plot()
-        plt.show()
+        eval.plot_field('pnl')
     print data
     
   

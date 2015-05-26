@@ -8,10 +8,11 @@ import pandas as pd
 from util.cache import DataCache
 from datetime import timedelta
 from datetime import date
-from visu import plot_orders
+from visu import plot_orders, plot_field
 #!pip install mlboost
 from mlboost.core.pphisto import SortHistogram
 
+from sys import maxint as MAXINT
 
 # little hack to make in working inside heroku submodule
 import os, sys
@@ -52,10 +53,17 @@ class Eval:
         self.field=field
         self.months=months
         self.init_cash = init_cash
-        self.init_shares = init_shares
-        self.min_trades = min_trades #if isinstance(min_trade, int) else int(min_trade*init_cash)
-        self.min_shares = min_shares
         self.min_cash = min_cash
+        if min_cash > init_cash:
+            logging.warning("min_cash > init_cash")
+
+        self.init_shares = init_shares
+        self.min_shares = min_shares
+        if min_shares > init_shares:
+            logging.warning("min_share > init_shares")
+
+        self.min_trades = min_trades #if isinstance(min_trade, int) else int(min_trade*init_cash)
+
         self.trans_fees = trans_fees
         if isinstance(strategy, Strategy):
             self.strategy = strategy
@@ -99,6 +107,11 @@ class Eval:
             if charts:
                 plot_orders(self.data[self.field], self.data['trade'], stockname, show=True)
            
+            if self.verbose:
+                print self.min_cash,self.min_shares
+                print "order\ttrade"    
+                for order,trade in zip(self.orders, self.data['trade']):
+                    print order, trade
             return self.data.ix[:, header]
 
         elif self.strategy == 'old':
@@ -143,6 +156,9 @@ class Eval:
         n = len(orders)
         cash = self.init_cash
         shares = self.init_shares
+        cash_available = (cash - self.min_cash) if self.min_cash else MAXINT  
+        shares_available = (shares - self.min_shares) if self.min_shares else MAXINT
+
         fees=0
         self.shares = np.zeros(n)
         self.cash = np.zeros(n)
@@ -169,17 +185,19 @@ class Eval:
             if order>0:
                 buy_price = self.data[buy_field][i]
                 trade_value = trade*buy_price + self.trans_fees
-                if (trade_value > cash) or (self.min_cash==None):
-                    trade = int((cash-self.trans_fees)/buy_price)
+                if (trade_value > cash_available) and (self.min_cash!=None): 
+                    trade = int((cash_available-self.trans_fees)/buy_price)
                     trade_value = trade*buy_price + self.trans_fees
             elif order<0: #sell 
-                if trade>shares or (self.min_shares==None):
-                    trade = -shares
+                if (trade>shares_available) and (self.min_shares!=None):
+                    trade = -shares_available
                 sell_price = self.data[sell_field][i]
                 trade_value = trade*sell_price + self.trans_fees
             # update shares
             shares += trade
+            shares_available -= trade
             cash -= trade_value
+            cash_available -= trade_value
             self.trades[i] = trade
             self.shares[i] = shares
             self.cash[i] = cash
@@ -221,8 +239,9 @@ class Eval:
             print tradedetails[stock].ix[:,header]
         return st
 
+    def plot_field(self, field):
+        plot_field(self.data, field, self.stockname)
+
 if __name__ == "__main__":
-    #eval(charts=True)
     print TrendStrategy.apply('TSLA')
-    print TrendStrategy.simulate('TSLA', 300)
-    pass
+    print TrendStrategy.simulate('TSLA', 25)

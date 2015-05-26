@@ -62,3 +62,4 @@ class Strategy:
             plot_orders(p, orders, stock + " (raw orders)")
             
         return orders, data[-n:]    
+        
