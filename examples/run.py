@@ -12,6 +12,7 @@ from util import evaluate
 reload(evaluate)
 import pandas as pd
 import argparse
+import logging
 
 pd.set_option('precision', 3) 
 parser = argparse.ArgumentParser(description=__doc__)
@@ -32,7 +33,7 @@ parser.add_argument('--momentums', default="log:log", help='momentums x:x (x=log
 parser.add_argument('--test', action="store_true", help='test example stocks')
 parser.add_argument('--strategy', default='trend', help='strategy to apply')
 parser.add_argument('--now', action="store_true", help='get buy/sale now')
-
+parser.add_argument('--logging_info', action="store_true", help='activate logging.info')
 
 args = parser.parse_args()
 eval = evaluate.Eval(field='Close', months=args.months, 
@@ -41,7 +42,11 @@ eval = evaluate.Eval(field='Close', months=args.months,
                      strategy=args.strategy, details=args.details,
                      verbose=args.verbose, debug=args.debug);
 eval.set_momentums(args.momentums)
+if args.logging_info:
+    logging.basicConfig(level=logging.INFO)
 
+
+      
 if args.cat!=None:
     print "category", args.cat
     from stocklist.fetch import Fetch

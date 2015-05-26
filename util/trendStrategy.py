@@ -3,7 +3,6 @@ from datetime import timedelta
 from datetime import date
 from strategy import Strategy 
 from pandas.core.frame import DataFrame
-import pandas.io.data as pdata
 from trendy import segtrends
 
 class TrendStrategy(Strategy):
@@ -16,7 +15,7 @@ class TrendStrategy(Strategy):
         if not isinstance(data, DataFrame):
             start= date.today()-timedelta(days=cls.window)
             end = date.today()-timedelta(days=1)
-            data = pdata.DataReader(stock, "yahoo", start, end) 
+            data = cls.datacache.DataReader(stock, "yahoo", start, end) 
         price = data[cls.field]
         order = cls.trend_order(price, segments=cls.window/5)
         return order
@@ -46,3 +45,5 @@ class TrendStrategy(Strategy):
             print min_sell, max_sell, buy
     
         return buy
+
+    

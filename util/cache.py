@@ -19,17 +19,17 @@ class DataCache(object):
             return self.cache[name][start:end]
 
         if name in self.cache:
-	    print 'Retreived ' + name + ' from cache'
-            return get_date_range(start,end)
+	    logging.info('Retreiving ' + name + ' from cache')
+            return get_date_range(start, end)
         elif os.path.isfile(datafilepath):
             self.cache[name] = pickle.load(open(datafilepath, "rb"))
-	    print 'Loading ' + name + ' from file'
-            return get_date_range(start,end)
+	    logging.info('Retreiving ' + name + ' from file')
+            return get_date_range(start, end)
         else:
-            data = pdata.DataReader(name,data_source,start=start,end=end)	
+            data = pdata.DataReader(name, data_source, start=start, end=end)	
             self.cache[name] = data
             pickle.dump(data, open(datafilepath,"wb"))
-	    print 'Loaded ' + name + ' from internet and stored'
+	    logging.info('Retreiving ' + name + ' from internet and stored')
             return get_date_range(start,end)
 
 
