@@ -48,7 +48,7 @@ class Eval:
                  init_cash=20000, init_shares=30, min_trades=30, 
                  min_shares=0, min_cash=0, trans_fees=10, 
                  strategy=TrendStrategy(),
-                 verbose=False, debug=False):
+                 verbose=False, debug=False, details=False):
         ''' min trade is either or % in initial_cash or a number of shares '''
         self.field=field
         self.months=months
@@ -71,6 +71,7 @@ class Eval:
             self.strategy = get_strategy(strategy)
         self.verbose = verbose
         self.debug = debug
+        self.details = details
 
     def set_momentums(cls, buysell='log:log'):
         def get(name):
@@ -100,7 +101,7 @@ class Eval:
         if isinstance(self.strategy, Strategy): 
             
             title = 'automatic strategy base %s' %stockname
-            self.orders, self.data = self.strategy.simulate(stockname, n, charts=charts)
+            self.orders, self.data = self.strategy.simulate(stockname, n, charts=(charts and self.details))
             self.BackTest(self.orders)
             self.update_starting_point()            
             
@@ -108,10 +109,12 @@ class Eval:
                 plot_orders(self.data[self.field], self.data['trade'], stockname, show=True)
            
             if self.verbose:
-                print self.min_cash,self.min_shares
-                print "order\ttrade"    
-                for order,trade in zip(self.orders, self.data['trade']):
-                    print order, trade
+                print "------------------------------"
+                print "min_cash:",self.min_cash,"min_shares:",self.min_shares
+                print "date\norder\ttrade"    
+                for d, order,trade in zip(self.data.index, self.orders, self.data['trade']):
+                    print d.date(), order, trade
+
             return self.data.ix[:, header]
 
         elif self.strategy == 'old':
@@ -211,9 +214,9 @@ class Eval:
         self.data['value'] = self.data['shares'] * self.data['Adj Close']
         self.data['total'] = self.data['cash']+self.data['value']
         self.data['pnl'] = self.data['total'].diff()
-        if self.verbose:
-            print self.data.ix[:, header]
-
+    
+    def __str__(self):
+        return str(self.data.ix[:, header])
     
     def eval_best(self, stocks=["TSLA", "GS"], charts=False):
         # try current strategy on different stock

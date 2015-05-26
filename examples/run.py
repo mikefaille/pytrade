@@ -23,9 +23,10 @@ parser.add_argument('--min_trades', default=10, type=int, help='min trade')
 parser.add_argument('--min_shares', default=None, type=int, help='min shares')
 parser.add_argument('--min_cash', default=None, type=int, help='min cash')
 parser.add_argument('--verbose', '-v', action="store_true", help='verbose')
+parser.add_argument('--details', action="store_true", help='add details')
 parser.add_argument('--debug', '-d', action="store_true", help='debug')
 parser.add_argument('--charts', '-c', action="store_true", help='show charts')
-parser.add_argument('--cat', default=None, type=int, help='fetch stocks from categy')
+parser.add_argument('--cat', default=None, type=int, help='fetch stocks from categy (ex:431)')
 parser.add_argument('--fetch_limit', default=None, type=int, help='fetch limit nb of stocks')
 parser.add_argument('--momentums', default="log:log", help='momentums x:x (x=log, exp, double, none)')
 parser.add_argument('--test', action="store_true", help='test example stocks')
@@ -37,7 +38,7 @@ args = parser.parse_args()
 eval = evaluate.Eval(field='Close', months=args.months, 
                      init_cash=args.init_cash, min_trades=args.min_trades,
                      min_cash=args.min_cash, min_shares=args.min_shares, 
-                     strategy=args.strategy, 
+                     strategy=args.strategy, details=args.details,
                      verbose=args.verbose, debug=args.debug);
 eval.set_momentums(args.momentums)
 
@@ -58,17 +59,18 @@ elif args.test:
 else:
     stocks = args.stocks.split(',')
 
-# should you trade it
+# should you trade it now?
 if args.now:
     for stock in stocks:
         print stock,"->",eval.strategy.apply(stock)
-# try current strategy on different stock
+# evaluate strategy on different stocks 
 elif len(stocks)>1:
-    out = eval.eval_best(stocks, charts=args.charts)
-else:
-    data = eval.run(stocks[0], charts=args.charts)
-    if args.charts:
+    eval.eval_best(stocks, charts=args.charts)
+else: # evalue strategy 
+    eval.run(stocks[0], charts=args.charts)
+    if args.charts and args.details:
         eval.plot_field('pnl')
-    print data
+    print eval
+    
     
   
