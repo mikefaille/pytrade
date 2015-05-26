@@ -29,11 +29,15 @@ parser.add_argument('--cat', default=None, type=int, help='fetch stocks from cat
 parser.add_argument('--fetch_limit', default=None, type=int, help='fetch limit nb of stocks')
 parser.add_argument('--momentums', default="log:log", help='momentums x:x (x=log, exp, double)')
 parser.add_argument('--test', action="store_true", help='test example stocks')
+parser.add_argument('--strategy', default='trend', help='strategy to apply')
+parser.add_argument('--now', action="store_true", help='get buy/sale now')
+
 
 args = parser.parse_args()
 eval = evaluate.Eval(field='Close', months=args.months, 
                      init_cash=args.init_cash, min_trades=args.min_trades,
                      min_cash=args.min_cash, min_shares=args.min_shares, 
+                     strategy=args.strategy, 
                      verbose=args.verbose, debug=args.debug);
 eval.set_momentums(args.momentums)
 
@@ -54,8 +58,12 @@ elif args.test:
 else:
     stocks = args.stocks.split(',')
 
+# should you trade it
+if args.now:
+    for stock in stocks:
+        print stock,"->",eval.strategy.apply(stock)
 # try current strategy on different stock
-if len(stocks)>1:
+elif len(stocks)>1:
     out = eval.eval_best(stocks, charts=args.charts)
 else:
     data = eval.run(stocks[0], charts=args.charts)

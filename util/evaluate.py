@@ -25,6 +25,13 @@ from strategy import Strategy
 from trendStrategy import TrendStrategy
 from twpStrategy import twpStrategy as twp
 
+def get_strategy(name):
+    if name=="trend":
+        return TrendStrategy()
+    else:
+        logging.warning("unknown strategy %s" %name)
+        return name
+
 pd.set_option('precision', 3) 
 pd.set_option('colheader_justify' ,'left')
 pd.set_option('expand_frame_repr' , False)
@@ -35,6 +42,7 @@ class Eval:
     def __init__(self, field='Close', months=12, 
                  init_cash=20000, init_shares=30, min_trades=30, 
                  min_shares=0, min_cash=0, trans_fees=10, 
+                 strategy=TrendStrategy(),
                  verbose=False, debug=False):
         ''' min trade is either or % in initial_cash or a number of shares '''
         self.field=field
@@ -45,6 +53,10 @@ class Eval:
         self.min_shares = min_shares
         self.min_cash = min_cash
         self.trans_fees = trans_fees
+        if isinstance(strategy, Strategy):
+            self.strategy = strategy
+        elif isinstance(strategy, str):
+            self.strategy = get_strategy(strategy)
         self.verbose = verbose
         self.debug = debug
 
@@ -62,7 +74,7 @@ class Eval:
         cls.buy_momentum = get(buy)
         cls.sell_momentum = get(sell)
                     
-    def run(self, stockname, strategy=TrendStrategy(), signalType='shares', 
+    def run(self, stockname, signalType='shares', 
             save=False, charts=True):
         ''' run the evaluation (strategy = string (old) or Strategy object)'''
 
@@ -73,10 +85,10 @@ class Eval:
         # get data
         n = int((5*4)*self.months)
                 
-        if isinstance(strategy, Strategy): 
+        if isinstance(self.strategy, Strategy): 
             
             title = 'automatic strategy base %s' %stockname
-            self.orders, self.data = strategy.simulate(stockname, n, charts=charts)
+            self.orders, self.data = self.strategy.simulate(stockname, n, charts=charts)
             self.BackTest(self.orders)
             self.update_starting_point()            
             
@@ -85,7 +97,7 @@ class Eval:
            
             return self.data
 
-        elif strategy == 'old':
+        elif self.strategy == 'old':
             
             data = pdata.DataReader(self.stockname, "yahoo")
             price = data[self.field][-n:] 
@@ -108,7 +120,7 @@ class Eval:
                 twp.visu(stockname, save)
                 
         else:
-            raise Exception("unknown strategy '%s'" %str(strategy))
+            raise Exception("unknown strategy '%s'" %str(self.strategy))
         
 
     def update_starting_point(self, verbose=False):
