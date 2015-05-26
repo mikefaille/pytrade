@@ -25,7 +25,7 @@ class TrendStrategy(Strategy):
     def trend_order(cls, y, segments=2, window=7, charts=False, verbose=False):
         ''' generate orders from segtrends '''
         x_maxima, maxima, x_minima, minima = segtrends(y, segments, window, charts=charts)
-
+    
         n = len(y)
         
         # get 2 latest support point y values prior to x
@@ -44,4 +44,5 @@ class TrendStrategy(Strategy):
     
         if verbose:
             print min_sell, max_sell, buy
+    
         return buy

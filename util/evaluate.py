@@ -3,7 +3,7 @@ import pandas as pd
 from filter import movingaverage
 import math
 import logging
-
+import pandas as pd
 import pandas.io.data as pdata
 from datetime import timedelta
 from datetime import date
@@ -25,21 +25,38 @@ from strategy import Strategy
 from trendStrategy import TrendStrategy
 from twpStrategy import twpStrategy as twp
 
+def get_strategy(name):
+    if name=="trend":
+        return TrendStrategy()
+    else:
+        logging.warning("unknown strategy %s" %name)
+        return name
+
+pd.set_option('precision', 3) 
+pd.set_option('colheader_justify' ,'left')
+pd.set_option('expand_frame_repr' , False)
+header = ['cash', 'shares', 'value', 'trade', 'fees', 'Adj Close', 'total', 'pnl']
+
 class Eval:
     ''' construct a strategy evaluator '''
     def __init__(self, field='Close', months=12, 
-                 init_cash=20000, init_shares=30, min_trade=30, 
+                 init_cash=20000, init_shares=30, min_trades=30, 
                  min_shares=0, min_cash=0, trans_fees=10, 
+                 strategy=TrendStrategy(),
                  verbose=False, debug=False):
         ''' min trade is either or % in initial_cash or a number of shares '''
         self.field=field
         self.months=months
         self.init_cash = init_cash
         self.init_shares = init_shares
-        self.min_trade = min_trade #if isinstance(min_trade, int) else int(min_trade*init_cash)
+        self.min_trades = min_trades #if isinstance(min_trade, int) else int(min_trade*init_cash)
         self.min_shares = min_shares
         self.min_cash = min_cash
         self.trans_fees = trans_fees
+        if isinstance(strategy, Strategy):
+            self.strategy = strategy
+        elif isinstance(strategy, str):
+            self.strategy = get_strategy(strategy)
         self.verbose = verbose
         self.debug = debug
 
@@ -57,7 +74,7 @@ class Eval:
         cls.buy_momentum = get(buy)
         cls.sell_momentum = get(sell)
                     
-    def run(self, stockname, strategy=TrendStrategy(), signalType='shares', 
+    def run(self, stockname, signalType='shares', 
             save=False, charts=True):
         ''' run the evaluation (strategy = string (old) or Strategy object)'''
 
@@ -68,19 +85,19 @@ class Eval:
         # get data
         n = int((5*4)*self.months)
                 
-        if isinstance(strategy, Strategy): 
+        if isinstance(self.strategy, Strategy): 
             
             title = 'automatic strategy base %s' %stockname
-            self.orders, self.data = strategy.simulate(stockname, n, charts=charts)
-            n = len(self.orders)
-            price = self.data[self.field]
+            self.orders, self.data = self.strategy.simulate(stockname, n, charts=charts)
             self.BackTest(self.orders)
+            self.update_starting_point()            
+            
             if charts:
-                plot_orders(price, self.data['trade'], stockname, show=True)
-            #print self.data.ix[:,['shares', 'cash', 'trade', 'Adj Close', 'value', 'pnl']]
-            return self.data
+                plot_orders(self.data[self.field], self.data['trade'], stockname, show=True)
+           
+            return self.data.ix[:, header]
 
-        elif strategy == 'old':
+        elif self.strategy == 'old':
             
             data = pdata.DataReader(self.stockname, "yahoo")
             price = data[self.field][-n:] 
@@ -90,7 +107,7 @@ class Eval:
                                             buy_momentum=self.buy_momentum,
                                             sell_momentum=self.sell_momentum,
                                             title='title');
-            signal = twp.orders2strategy(orders, price[-n:], self.min_trade)
+            signal = twp.orders2strategy(orders, price[-n:], self.min_trades)
             
             # run the backtest
             import lib.backtest as bt
@@ -103,11 +120,22 @@ class Eval:
                 twp.visu(stockname, save)
                 
         else:
-            raise Exception("unknown strategy '%s'" %str(strategy))
+            raise Exception("unknown strategy '%s'" %str(self.strategy))
         
 
-    def BackTest(self, orders, buy_field='High', sell_field='Low', verbose=False):
+    def update_starting_point(self, verbose=False):
+        start = self.data.index[0]
+        value = self.init_shares*self.data['Adj Close'][0]        
+        self.data.set_value(start, 'cash', self.init_cash)
+        self.data.set_value(start, 'shares', self.init_shares)
+        self.data.set_value(start, 'value', value)
+        self.data.set_value(start, 'total', self.init_cash+value)
+        if verbose:
+            print self.data.ix[:, header]
+
+    def BackTest(self, orders, buy_field='High', sell_field='Low'):
         ''' price field = Open, High, Low, Close, Adj Close ''' 
+
         n = len(orders)
         cash = self.init_cash
         shares = self.init_shares
@@ -127,15 +155,9 @@ class Eval:
                         orders[i] = self.sell_momentum(orders[i-1])
             return orders[i]
 
-        if verbose:
-            print "#\tcash\ttrade\tshares\tprice\tvalue"
-            price = self.data['Adj Close'][0]
-            value = cash+price*shares
-            print "\t".join([str(el) for el in (0, cash, 0, shares, price, value)])
-                        
         for i in range(len(orders)):
             order = momentum(orders, i)
-            trade = (order*self.min_trade)
+            trade = (order*self.min_trades)
             trade_value = 0
             if order!=0:
                 fees+=self.trans_fees
@@ -143,11 +165,11 @@ class Eval:
             if order>0:
                 buy_price = self.data[buy_field][i]
                 trade_value = trade*buy_price + self.trans_fees
-                if trade_value > cash:
+                if (trade_value > cash) or (self.min_cash==None):
                     trade = int((cash-self.trans_fees)/buy_price)
                     trade_value = trade*buy_price + self.trans_fees
             elif order<0: #sell 
-                if trade>shares:
+                if trade>shares or (self.min_shares==None):
                     trade = -shares
                 sell_price = self.data[sell_field][i]
                 trade_value = trade*sell_price + self.trans_fees
@@ -158,10 +180,6 @@ class Eval:
             self.shares[i] = shares
             self.cash[i] = cash
             self.fees[i] = fees
-            if verbose:
-                price = self.data['Adj Close'][i]
-                value = cash+price*shares
-                print "\t".join([str(el) for el in (i+1, cash, trade, shares, price, value)])
 
         # create missing fields
         self.data['shares'] = self.shares
@@ -171,13 +189,14 @@ class Eval:
         self.data['value'] = self.data['shares'] * self.data['Adj Close']
         self.data['total'] = self.data['cash']+self.data['value']
         self.data['pnl'] = self.data['total'].diff()
+        if self.verbose:
+            print self.data.ix[:, header]
 
     
     def eval_best(self, stocks=["TSLA", "GS"], charts=False):
         # try current strategy on different stock
         trademap = {}
         tradedetails = {}
-
         for i, stock in enumerate(stocks):
             try:
                 trade = self.run(stock, charts=charts)
@@ -190,11 +209,12 @@ class Eval:
         
         st = SortHistogram(trademap, False, True)
         
-        print "Here are the Stocks sorted by PnL"
+        if len(stocks)>1:
+            print "Here are the Stocks sorted by PnL"
         for i,el in enumerate(st):
             stock, value = el
             print "#", i+1, stock
-            print tradedetails[stock]
+            print tradedetails[stock].ix[:,header]
         return st
 
 if __name__ == "__main__":

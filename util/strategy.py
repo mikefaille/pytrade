@@ -3,8 +3,7 @@ import pandas as pd
 import math
 
 import pandas.io.data as pdata
-from datetime import timedelta
-from datetime import date
+from datetime import timedelta, date
 from visu import plot_orders
 
 # little hack to make in working inside heroku submodule
@@ -21,25 +20,31 @@ import abc
 class Strategy:
     __metaclass__ = abc.ABCMeta
     field = 'Close'
-    window = 7
     @abc.abstractmethod
     def apply(self, stock, data=None):
         """ return buy(1) or sell(-1) """
         return
 
     @classmethod
-    def simulate(cls, stock, start, end=None, verbose=False, charts=True):
-        ''' start is a datetime or nb days prior to now '''
+    def get_start_end(cls, start, end=None):
         end = end if end!=None else date.today()-timedelta(days=1)
         if isinstance(start, int):
             start = end-timedelta(days=start)
+        return start, end
+
+    @classmethod
+    def simulate(cls, stock, start, end=None, verbose=False, charts=True):
+        ''' start is a datetime or nb days prior to now '''
+        start, end = cls.get_start_end(start, end)
         # add required padding 
         data = pdata.DataReader(stock, "yahoo", 
                                 start=start-timedelta(days=cls.window),
                                 end=end)
-        n = len(data)
+        n = len(data)-cls.window+1
         orders=np.zeros(n)
-        for i in range(n):
+       
+        # ensure orders[0]=0 (initial point)
+        for i in range(1,  n):
             start_i = start+timedelta(days=-cls.window+i)
             end_i = start+timedelta(days=i)
             data_i = data[start_i:end_i]
@@ -50,6 +55,6 @@ class Strategy:
         
         if charts:
             p = data[cls.field][-n:]
-            plot_orders(p, orders, stock)
+            plot_orders(p, orders, stock + " (raw orders)")
             
-        return orders, data    
+        return orders, data[-n:]    
