@@ -101,7 +101,8 @@ class Eval:
         if isinstance(self.strategy, Strategy): 
             
             title = 'automatic strategy base %s' %stockname
-            self.orders, self.data = self.strategy.simulate(stockname, n, charts=(charts and self.details))
+            #self.orders, self.data = self.strategy.simulate(stockname, n, charts=(charts and self.details))
+            self.orders, self.data = self.strategy.optimal(stockname, n, charts=(charts and self.details))
             self.BackTest(self.orders)
             self.update_starting_point()            
             

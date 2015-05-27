@@ -45,5 +45,3 @@ class TrendStrategy(Strategy):
             print min_sell, max_sell, buy
     
         return buy
-
-    
