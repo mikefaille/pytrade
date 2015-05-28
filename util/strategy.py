@@ -31,22 +31,27 @@ class Strategy:
     @classmethod
     def optimal(cls, stock, start, end=None, charts=True, verbose=False):
         ''' start is a datetime or nb days prior to now '''
-        start, end = cls.get_start_end(start, end)
+        #start, end = cls.get_start_end(start, end)
+
         # add required padding 
-        data = cls.datacache.DataReader(stock, "yahoo",
-                                        start=start-timedelta(days=cls.window),
-                                        end=end)
+        data = cls.datacache.DataReader(stock, "yahoo")[-start:]#,
+                                        #start=start-timedelta(days=cls.window),
+                                        #end=end)
+                    
         n = len(data)
-        orders = cls.orders_from_trends(data[cls.field], segments=n/5, window=7, charts=charts)
-        return orders[-n+cls.window:], data[-n+cls.window:]
+        print "period:", data.index[0], data.index[-1], ";ndays =",n
+        print data['Open']
+        orders = cls.orders_from_trends(data['Open'], segments=n/5, window=7, charts=charts)
+        return orders, data #[-n+cls.window:]
         
 
     @classmethod
-    def get_start_end(cls, start, end=None):
+    def get_start_end(cls, start, end=None, verbose=False):
         end = end if end!=None else date.today()-timedelta(days=1)
         if isinstance(start, int):
             start = end-timedelta(days=start)
-        print "period:", start, end, ";ndays =",(end-start).days
+        if verbose:
+            print "period:", start, end, ";ndays =",(end-start).days
         return start, end
 
     @classmethod
@@ -78,7 +83,8 @@ class Strategy:
         return orders, data[-n:]    
        
     @classmethod
-    def orders_from_trends(cls, x, segments=2, window=7, charts=True):
+    def orders_from_trends(cls, x, segments=2, window=7, charts=True, 
+                           verbose=False):
         ''' generate orders from segtrends '''
         from filter import movingaverage
         from trendy import segtrends 
@@ -114,5 +120,7 @@ class Strategy:
             last_sale = y[i] if (buy==-1) else last_sale
         
         # OUTPUT
+        if verbose:
+            print "orders", orders
         return orders
     

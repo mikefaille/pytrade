@@ -1,12 +1,16 @@
  #!/usr/bin/python
 ''' run does 3 things:
- #1) eval a strategy on a stock -> ./run.py -s TSLA (default) \
- #2) find best stock:  ./run.py --stock TSLA,GS,SCTY,AMZN,TWTR \
-                       ./run.py --cat 431 --fetch_limit 5 \
- #3) by or sale today: ./run.py --stock TSLA,GS,SCTY,AMZN,TWTR --now \
-\
-find the best stock from choices on which you should apply the strategy \
-    base on historic data \
+ #1) eval a strategy on a stock -> ./run.py -s TSLA (default) 
+ #2) find best stock:  ./run.py --stock TSLA,GS,SCTY,AMZN,TWTR 
+                       ./run.py --cat 431 --fetch_limit 5 
+ #3) by or sale today: ./run.py --stock TSLA,GS,SCTY,AMZN,TWTR --now 
+
+find the best stock from choices on which you should apply the strategy 
+    base on historic data 
+
+python run.py --month 1 -s TSLA --charts --details --init_shares 0 --verbose --ts --fees 0 --momentum non:none
+2015-05-2015-05-27  12996.9 -10     -2485.1   0     0     248.51  10511.8  511.827  12996.9 -10     -2485.1   0     0     248.51  10511.8  511.8
+
 '''
 from util import evaluate 
 reload(evaluate)
@@ -23,6 +27,7 @@ parser.add_argument('--init_shares', default=40, type=int, help='min trade')
 parser.add_argument('--min_trades', default=10, type=int, help='min trade')
 parser.add_argument('--min_shares', default=None, type=int, help='min shares')
 parser.add_argument('--min_cash', default=None, type=int, help='min cash')
+parser.add_argument('--fees', default=10, type=int, help='min fees')
 parser.add_argument('--verbose', '-v', action="store_true", help='verbose')
 parser.add_argument('--details', action="store_true", help='add details')
 parser.add_argument('--debug', '-d', action="store_true", help='debug')
@@ -37,8 +42,9 @@ parser.add_argument('--logging_info', action="store_true", help='activate loggin
 parser.add_argument('--ts', action="store_true", help='trades = shares')
 
 args = parser.parse_args()
-eval = evaluate.Eval(field='Close', months=args.months, 
-                     init_cash=args.init_cash, min_trades=args.min_trades,
+eval = evaluate.Eval(field='Open', months=args.months, 
+                     init_cash=args.init_cash, init_shares=args.init_shares,
+                     min_trades=args.min_trades,trans_fees=args.fees,
                      min_cash=args.min_cash, min_shares=args.min_shares, 
                      strategy=args.strategy, details=args.details,
                      trade_equal_shares=args.ts,

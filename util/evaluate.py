@@ -21,14 +21,12 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
 log_momentum = lambda previous: round(math.log(1+2*abs(previous))+1)
 double_momentum = lambda previous: 2*abs(previous)
 exp_momentum = lambda previous: round(math.pow(abs(previous), 2))
-no_momentum = lambda previous:round(abs(previous))
+no_momentum = lambda previous:round(previous) #WHY???abs(previous))
 
 from strategy import Strategy
 # import strategies 
 from trendStrategy import TrendStrategy
 from twpStrategy import twpStrategy as twp
-
-
 
 def get_strategy(name):
     if name=="trend":
@@ -40,7 +38,7 @@ def get_strategy(name):
 pd.set_option('precision', 3) 
 pd.set_option('colheader_justify' ,'left')
 pd.set_option('expand_frame_repr' , False)
-header = ['cash', 'shares', 'value', 'trade', 'fees', 'Adj Close', 'total', 'pnl']
+header = ['cash', 'shares', 'value', 'trade', 'fees', 'Open', 'total', 'pnl']
 
 class Eval:
     ''' construct a strategy evaluator '''
@@ -105,7 +103,7 @@ class Eval:
             #self.orders, self.data = self.strategy.simulate(stockname, n, charts=(charts and self.details))
             self.orders, self.data = self.strategy.optimal(stockname, n, charts=(charts and self.details))
             self.BackTest(self.orders)
-            self.update_starting_point()            
+            #self.update_starting_point()            
             
             if charts:
                 plot_orders(self.data[self.field], self.data['trade'], stockname, show=True)
@@ -155,7 +153,8 @@ class Eval:
         if verbose:
             print self.data.ix[:, header]
 
-    def BackTest(self, orders, buy_field='High', sell_field='Low'):
+    def BackTest(self, orders, buy_field='Open', sell_field='Open'):
+    #def BackTest(self, orders, buy_field='High', sell_field='Low'):
         ''' price field = Open, High, Low, Close, Adj Close ''' 
 
         n = len(orders)
@@ -182,12 +181,14 @@ class Eval:
 
         for i in range(len(orders)):
             order = momentum(orders, i)
-            trade = (order*self.min_trades)
-            if self.trade_equal_shares:
-                print "trade->",trade,trade-shares
-                trade = trade-shares#order*self.min_trades#
-                order = trade
-                orders[i]=order
+            
+            if  self.trade_equal_shares:
+                trade =  (order*self.min_trades) - shares
+                #shares = (order*self.min_trades)
+        
+            else:
+                trade = (order*self.min_trades)
+                #print i, trade
                 
             trade_value = 0
             if order!=0:
@@ -219,9 +220,9 @@ class Eval:
         self.data['cash'] = self.cash
         self.data['trade'] = self.trades
         self.data['fees'] = self.fees
-        self.data['value'] = self.data['shares'] * self.data['Adj Close']
+        self.data['value'] = self.data['shares'] * self.data['Open']#TODO['Adj Close']
         self.data['total'] = self.data['cash']+self.data['value']
-        self.data['pnl'] = self.data['total'].diff()
+        self.data['pnl'] = self.data['total']-self.init_cash#.diff() #TODO
     
     def __str__(self):
         return str(self.data.ix[:, header])

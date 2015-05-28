@@ -30,7 +30,7 @@ class DataCache(object):
             self.cache[name] = data
             pickle.dump(data, open(datafilepath,"wb"))
 	    logging.info('Retreiving ' + name + ' from internet and stored')
-            return get_date_range(start,end)
+            return get_date_range(start, end)
 
 
 if __name__ == "__main__":
