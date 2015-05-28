@@ -80,8 +80,8 @@ class Strategy:
     def orders_from_trends(cls, x, segments=2, window=7, charts=True):
         ''' generate orders from segtrends '''
         from filter import movingaverage
-        from trendy import segtrends
-        x_maxima, maxima, x_minima, minima = segtrends(x, segments, charts, window)
+        from trendy import segtrends 
+        x_maxima, maxima, x_minima, minima = segtrends(x, segments, window, charts)
         n = len(x)
         y = np.array(x)
         movy = movingaverage(y, window)
