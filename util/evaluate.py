@@ -46,8 +46,10 @@ class Eval:
                  init_cash=20000, init_shares=30, min_trades=30, 
                  min_shares=0, min_cash=0, trans_fees=10, 
                  strategy=TrendStrategy(), trade_equal_shares=False,
+                 optimal=False, worst=True,
                  verbose=False, debug=False, details=False):
         ''' min trade is either or % in initial_cash or a number of shares '''
+        ''' price field = Open, High, Low, Close, Adj Close ''' 
         self.field=field
         self.months=months
         self.init_cash = init_cash
@@ -71,6 +73,8 @@ class Eval:
         self.verbose = verbose
         self.debug = debug
         self.details = details
+        self.optimal = optimal
+        self.worst = worst
 
     def set_momentums(cls, buysell='log:log'):
         def get(name):
@@ -100,8 +104,11 @@ class Eval:
         if isinstance(self.strategy, Strategy): 
             
             title = 'automatic strategy base %s' %stockname
-            #self.orders, self.data = self.strategy.simulate(stockname, n, charts=(charts and self.details))
-            self.orders, self.data = self.strategy.optimal(stockname, n, charts=(charts and self.details))
+            if self.optimal:
+                self.orders, self.data = self.strategy.optimal(stockname, n, charts=(charts and self.details))
+            else:
+                self.orders, self.data = self.strategy.simulate(stockname, n, charts=(charts and self.details))
+
             self.BackTest(self.orders)
             #self.update_starting_point()            
             
@@ -153,9 +160,13 @@ class Eval:
         if verbose:
             print self.data.ix[:, header]
 
-    def BackTest(self, orders, buy_field='Open', sell_field='Open'):
-    #def BackTest(self, orders, buy_field='High', sell_field='Low'):
-        ''' price field = Open, High, Low, Close, Adj Close ''' 
+    def BackTest(self, orders):
+        if self.worst:
+            buy_field='High'
+            sell_field='Low'
+        else:
+            buy_field=self.field
+            sell_field=self.field
 
         n = len(orders)
         cash = self.init_cash
@@ -184,11 +195,8 @@ class Eval:
             
             if  self.trade_equal_shares:
                 trade =  (order*self.min_trades) - shares
-                #shares = (order*self.min_trades)
-        
             else:
                 trade = (order*self.min_trades)
-                #print i, trade
                 
             trade_value = 0
             if order!=0:
@@ -222,7 +230,7 @@ class Eval:
         self.data['fees'] = self.fees
         self.data['value'] = self.data['shares'] * self.data['Open']#TODO['Adj Close']
         self.data['total'] = self.data['cash']+self.data['value']
-        self.data['pnl'] = self.data['total']-self.init_cash#.diff() #TODO
+        self.data['pnl'] = self.data['total']- (self.init_cash+self.init_shares*self.data['Open'])
     
     def __str__(self):
         return str(self.data.ix[:, header])

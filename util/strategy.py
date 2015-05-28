@@ -37,12 +37,12 @@ class Strategy:
         data = cls.datacache.DataReader(stock, "yahoo")[-start:]#,
                                         #start=start-timedelta(days=cls.window),
                                         #end=end)
-                    
         n = len(data)
-        print "period:", data.index[0], data.index[-1], ";ndays =",n
-        print data['Open']
+        if verbose:
+            print "period:", data.index[0], data.index[-1], ";ndays =",n
+            print data['Open']
         orders = cls.orders_from_trends(data['Open'], segments=n/5, window=7, charts=charts)
-        return orders, data #[-n+cls.window:]
+        return orders, data 
         
 
     @classmethod

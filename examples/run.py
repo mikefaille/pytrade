@@ -8,7 +8,7 @@
 find the best stock from choices on which you should apply the strategy 
     base on historic data 
 
-python run.py --month 1 -s TSLA --charts --details --init_shares 0 --verbose --ts --fees 0 --momentum non:none
+python run.py --month 1 -s TSLA --charts --details --init_shares 0 --verbose --ts --fees 0 --momentum non:none --best
 2015-05-2015-05-27  12996.9 -10     -2485.1   0     0     248.51  10511.8  511.827  12996.9 -10     -2485.1   0     0     248.51  10511.8  511.8
 
 '''
@@ -40,14 +40,20 @@ parser.add_argument('--strategy', default='trend', help='strategy to apply')
 parser.add_argument('--now', action="store_true", help='get buy/sale now')
 parser.add_argument('--logging_info', action="store_true", help='activate logging.info')
 parser.add_argument('--ts', action="store_true", help='trades = shares')
+parser.add_argument('--best', action="store_true", help='best algo')
+parser.add_argument('--worst', action="store_true", help='worst selling scenarios')
+
 
 args = parser.parse_args()
+
 eval = evaluate.Eval(field='Open', months=args.months, 
                      init_cash=args.init_cash, init_shares=args.init_shares,
                      min_trades=args.min_trades,trans_fees=args.fees,
                      min_cash=args.min_cash, min_shares=args.min_shares, 
                      strategy=args.strategy, details=args.details,
-                     trade_equal_shares=args.ts,
+                     worst=args.worst,
+                     trade_equal_shares=args.ts, optimal=args.best,
+                     
                      verbose=args.verbose, debug=args.debug);
 eval.set_momentums(args.momentums)
 if args.logging_info:
