@@ -26,7 +26,6 @@ no_momentum = lambda previous:round(previous) #WHY???abs(previous))
 from strategy import Strategy
 # import strategies 
 from trendStrategy import TrendStrategy
-from twpStrategy import twpStrategy as twp
 
 def get_strategy(name):
     if name=="trend":
@@ -43,10 +42,10 @@ header = ['cash', 'shares', 'value', 'trade', 'fees', 'Open', 'total', 'pnl']
 class Eval:
     ''' construct a strategy evaluator '''
     def __init__(self, field='Close', months=12, 
-                 init_cash=20000, init_shares=30, min_trades=30, 
+                 init_cash=20000, init_shares=30, min_trade=30, 
                  min_shares=0, min_cash=0, trans_fees=10, 
                  strategy=TrendStrategy(), trade_equal_shares=False,
-                 optimal=False, worst=True,
+                 optimal=False, worst=True, min_trade_shares=True,
                  verbose=False, debug=False, details=False):
         ''' min trade is either or % in initial_cash or a number of shares '''
         ''' price field = Open, High, Low, Close, Adj Close ''' 
@@ -63,7 +62,7 @@ class Eval:
             logging.warning("min_share > init_shares")
 
         self.trade_equal_shares=trade_equal_shares
-        self.min_trades = min_trades #if isinstance(min_trade, int) else int(min_trade*init_cash)
+        self.min_trade = min_trade #if isinstance(min_trade, int) else int(min_trade*init_cash)
 
         self.trans_fees = trans_fees
         if isinstance(strategy, Strategy):
@@ -75,6 +74,7 @@ class Eval:
         self.details = details
         self.optimal = optimal
         self.worst = worst
+        self.min_trade_shares = min_trade_shares
 
     def set_momentums(cls, buysell='log:log'):
         def get(name):
@@ -124,27 +124,6 @@ class Eval:
 
             return self.data.ix[:, header]
 
-        elif self.strategy == 'old':
-            
-            data = self.strategy.datacache.DataReader(self.stockname, "yahoo") 
-            price = data[self.field][-n:] 
-            
-            orders = twp.orders_from_trends(price, segments=n/5, 
-                                            charts=(charts and self.debug), 
-                                            buy_momentum=self.buy_momentum,
-                                            sell_momentum=self.sell_momentum,
-                                            title='title');
-            signal = twp.orders2strategy(orders, price[-n:], self.min_trades)
-            
-            # run the backtest
-            import lib.backtest as bt
-            twp.backtest = bt.Backtest(price, signal, signalType=signalType,
-                                       initialCash=self.init_cash, initialShares=self.init_shares,
-                                       min_cash=self.min_cash, min_shares=self.min_shares,
-                                       trans_fees=self.trans_fees)
-            
-            if charts:
-                twp.visu(stockname, save)
                 
         else:
             raise Exception("unknown strategy '%s'" %str(self.strategy))
@@ -161,6 +140,12 @@ class Eval:
             print self.data.ix[:, header]
 
     def BackTest(self, orders):
+
+        min_trade=self.min_trade
+        if not self.min_trade_shares:
+            min_trade=round(min_trade/self.data[self.field][0])
+            logging.info("min trade is set to %s" %min_trade)
+
         if self.worst:
             buy_field='High'
             sell_field='Low'
@@ -194,9 +179,9 @@ class Eval:
             order = momentum(orders, i)
             
             if  self.trade_equal_shares:
-                trade =  (order*self.min_trades) - shares
+                trade =  (order*min_trade) - shares
             else:
-                trade = (order*self.min_trades)
+                trade = (order*min_trade)
                 
             trade_value = 0
             if order!=0:
