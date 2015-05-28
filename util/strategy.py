@@ -38,7 +38,7 @@ class Strategy:
                                         end=end)
         n = len(data)
         orders = cls.orders_from_trends(data[cls.field], segments=n/5, window=7, charts=charts)
-        return orders, data[-n:]
+        return orders[-n+cls.window:], data[-n+cls.window:]
         
 
     @classmethod
@@ -46,6 +46,7 @@ class Strategy:
         end = end if end!=None else date.today()-timedelta(days=1)
         if isinstance(start, int):
             start = end-timedelta(days=start)
+        print "period:", start, end, ";ndays =",(end-start).days
         return start, end
 
     @classmethod

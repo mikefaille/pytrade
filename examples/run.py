@@ -17,7 +17,7 @@ import logging
 pd.set_option('precision', 3) 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--stocks', '-s', default="TSLA", help='list of stocks (comma separated)')
-parser.add_argument('--months', '-m', default=12, help='history nb of months')
+parser.add_argument('--months', '-m', default=12, type=int, help='history nb of months')
 parser.add_argument('--init_cash', default=10000, type=int, help='initial cash')
 parser.add_argument('--init_shares', default=40, type=int, help='min trade')
 parser.add_argument('--min_trades', default=10, type=int, help='min trade')
@@ -34,12 +34,14 @@ parser.add_argument('--test', action="store_true", help='test example stocks')
 parser.add_argument('--strategy', default='trend', help='strategy to apply')
 parser.add_argument('--now', action="store_true", help='get buy/sale now')
 parser.add_argument('--logging_info', action="store_true", help='activate logging.info')
+parser.add_argument('--ts', action="store_true", help='trades = shares')
 
 args = parser.parse_args()
 eval = evaluate.Eval(field='Close', months=args.months, 
                      init_cash=args.init_cash, min_trades=args.min_trades,
                      min_cash=args.min_cash, min_shares=args.min_shares, 
                      strategy=args.strategy, details=args.details,
+                     trade_equal_shares=args.ts,
                      verbose=args.verbose, debug=args.debug);
 eval.set_momentums(args.momentums)
 if args.logging_info:

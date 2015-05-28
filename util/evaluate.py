@@ -47,7 +47,7 @@ class Eval:
     def __init__(self, field='Close', months=12, 
                  init_cash=20000, init_shares=30, min_trades=30, 
                  min_shares=0, min_cash=0, trans_fees=10, 
-                 strategy=TrendStrategy(),
+                 strategy=TrendStrategy(), trade_equal_shares=False,
                  verbose=False, debug=False, details=False):
         ''' min trade is either or % in initial_cash or a number of shares '''
         self.field=field
@@ -62,6 +62,7 @@ class Eval:
         if min_shares > init_shares:
             logging.warning("min_share > init_shares")
 
+        self.trade_equal_shares=trade_equal_shares
         self.min_trades = min_trades #if isinstance(min_trade, int) else int(min_trade*init_cash)
 
         self.trans_fees = trans_fees
@@ -182,6 +183,12 @@ class Eval:
         for i in range(len(orders)):
             order = momentum(orders, i)
             trade = (order*self.min_trades)
+            if self.trade_equal_shares:
+                print "trade->",trade,trade-shares
+                trade = trade-shares#order*self.min_trades#
+                order = trade
+                orders[i]=order
+                
             trade_value = 0
             if order!=0:
                 fees+=self.trans_fees

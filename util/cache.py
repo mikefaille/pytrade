@@ -26,7 +26,7 @@ class DataCache(object):
 	    logging.info('Retreiving ' + name + ' from file')
             return get_date_range(start, end)
         else:
-            data = pdata.DataReader(name, data_source, start=start, end=end)	
+            data = pdata.DataReader(name, data_source)
             self.cache[name] = data
             pickle.dump(data, open(datafilepath,"wb"))
 	    logging.info('Retreiving ' + name + ' from internet and stored')
