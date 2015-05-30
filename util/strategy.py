@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import math
+import csv
 
 import pandas.io.data as pdata
 from datetime import timedelta, date
@@ -29,39 +30,48 @@ class Strategy:
         return
 
     @classmethod
-    def optimal(cls, stock, start, end=None, charts=True, verbose=False):
+    def optimal(cls, stock, start, end=None, npoints=False,
+                charts=True, verbose=False, save=True):
         ''' start is a datetime or nb days prior to now '''
-        #start, end = cls.get_start_end(start, end)
-
-        # add required padding 
-        data = cls.datacache.DataReader(stock, "yahoo")[-start:]#,
-                                        #start=start-timedelta(days=cls.window),
-                                        #end=end)
+        data = cls.get_data(stock, start, end, npoints, verbose=verbose)
         n = len(data)
         if verbose:
             print "period:", data.index[0], data.index[-1], ";ndays =",n
             print data['Open']
         orders = cls.orders_from_trends(data['Open'], segments=n/5, window=7, charts=charts)
+        if save:
+            with open('%s_trade.csv' %stock, 'wb') as f:
+                writer = csv.writer(f)
+                writer.writerow(['date', 'order'])
+                for date, order in zip(data.index, orders):
+                    writer.writerow([date, order])
         return orders, data 
         
 
     @classmethod
-    def get_start_end(cls, start, end=None, verbose=False):
+    def get_data(cls, stock, start, end=None, npoints=False, verbose=False):
         end = end if end!=None else date.today()-timedelta(days=1)
         if isinstance(start, int):
-            start = end-timedelta(days=start)
+            if npoints:
+                data = cls.datacache.DataReader(stock, "yahoo")[-start:]
+            else:
+                start = end-timedelta(days=start)
+                 # add required padding 
+                data = cls.datacache.DataReader(stock, "yahoo",
+                                                start=start-timedelta(days=cls.window),
+                                                end=end)
         if verbose:
             print "period:", start, end, ";ndays =",(end-start).days
-        return start, end
+       
+        return data
 
     @classmethod
-    def simulate(cls, stock, start, end=None, charts=True, verbose=False):
+    def simulate(cls, stock, start=None, end=None, npoints=False, 
+                 charts=True, verbose=False, save=True):
         ''' start is a datetime or nb days prior to now '''
-        start, end = cls.get_start_end(start, end)
-        # add required padding 
-        data = cls.datacache.DataReader(stock, "yahoo",
-                                        start=start-timedelta(days=cls.window),
-                                        end=end)
+        data = cls.get_data(stock, start, end, npoints, verbose=verbose)
+        start = data.index[0]+timedelta(days=cls.window)
+        end = data.index[-1]
                                 
         n = len(data)-cls.window+1
         orders=np.zeros(n)
