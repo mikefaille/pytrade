@@ -43,10 +43,10 @@ parser.add_argument('--ts', action="store_true", help='trades = shares')
 parser.add_argument('--best', action="store_true", help='best algo')
 parser.add_argument('--worst', action="store_true", help='worst selling scenarios')
 parser.add_argument('--shares', action="store_true", help='min trade is in shares')
-
+parser.add_argument('--field', default='Open', help='price field = Open, High, Low, Close, Adj Close')
 args = parser.parse_args()
 
-eval = evaluate.Eval(field='Open', months=args.months, 
+eval = evaluate.Eval(field=args.field, months=args.months, 
                      init_cash=args.init_cash, init_shares=args.init_shares,
                      min_trade=args.min_trade,trans_fees=args.fees,
                      min_cash=args.min_cash, min_shares=args.min_shares, 

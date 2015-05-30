@@ -48,7 +48,8 @@ class Eval:
                  optimal=False, worst=True, min_trade_shares=True,
                  verbose=False, debug=False, details=False):
         ''' min trade is either or % in initial_cash or a number of shares '''
-        ''' price field = Open, High, Low, Close, Adj Close ''' 
+        ''' price field = Open, High, Low, Close, Adj Close '''
+        
         self.field=field
         self.months=months
         self.init_cash = init_cash
@@ -141,10 +142,15 @@ class Eval:
 
     def BackTest(self, orders):
 
-        min_trade=self.min_trade
-        if not self.min_trade_shares:
-            min_trade=round(min_trade/self.data[self.field][0])
-            logging.info("min trade is set to %s" %min_trade)
+        def get_min_trade(i, verbose=False):
+            min_trade=self.min_trade
+            if not self.min_trade_shares:
+                min_trade=round(min_trade/self.data[self.field][i])
+                if verbose:
+                    logging.info("%s: min trade is set to %s" %(min_trade, self.stockname))
+                return min_trade
+        
+        min_trade=get_min_trade(0, True)
 
         if self.worst:
             buy_field='High'
@@ -176,6 +182,7 @@ class Eval:
             return orders[i]
 
         for i in range(len(orders)):
+            min_trade=get_min_trade(i)
             order = momentum(orders, i)
             
             if  self.trade_equal_shares:
