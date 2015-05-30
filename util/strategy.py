@@ -42,8 +42,8 @@ class Strategy:
         if save:
             with open('%s_trade.csv' %stock, 'wb') as f:
                 writer = csv.writer(f)
-                writer.writerow(['date', 'order'])
-                for date, order in zip(data.index, orders):
+                #writer.writerow(['date', 'order'])
+                for date, order in zip(data.index[cls.window:], orders[cls.window:]):
                     writer.writerow([date, order])
         return orders, data 
         

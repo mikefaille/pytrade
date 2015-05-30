@@ -25,11 +25,17 @@ class TrendStrategy(Strategy):
     def trend_order(cls, y, segments=2, window=7, writer=None, charts=False, verbose=False):
         ''' generate orders from segtrends '''
         x_maxima, maxima, x_minima, minima = segtrends(y, segments, window, charts=charts)
+        max_slop =  np.diff(maxima)/np.diff(x_maxima)
+        min_slop =  np.diff(minima)/np.diff(x_minima)
         if writer:
             data = np.zeros((segments-1)*4)
-            for i, el in enumerate((x_maxima, maxima, x_minima, minima)):
+            for i, el in enumerate((max_slop, min_slop)):
                 start = i*(segments-1)
+                data[start:start+segments-1]=el
+            for i, el in enumerate((x_maxima, x_minima)):
+                start = (i+2)*(segments-1)
                 data[start:start+segments-1]=np.diff(el)
+
             writer.writerow(data)
         
         # get 2 latest support point y values prior to x
