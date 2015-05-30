@@ -4,28 +4,33 @@ from datetime import date
 from strategy import Strategy 
 from pandas.core.frame import DataFrame
 from trendy import segtrends
+import numpy as np
 
 class TrendStrategy(Strategy):
     window = 21
     field = 'Close'
     
     @classmethod
-    def apply(cls, stock, data=None):
+    def apply(cls, stock, data=None, writer=None):
         ''' return buy (1) or sale (-1) '''
         if not isinstance(data, DataFrame):
             start= date.today()-timedelta(days=cls.window)
             end = date.today()-timedelta(days=1)
             data = cls.datacache.DataReader(stock, "yahoo", start, end) 
         price = data[cls.field]
-        order = cls.trend_order(price, segments=cls.window/5)
+        order = cls.trend_order(price, segments=cls.window/5, writer=writer)
         return order
 
     @classmethod
-    def trend_order(cls, y, segments=2, window=7, charts=False, verbose=False):
+    def trend_order(cls, y, segments=2, window=7, writer=None, charts=False, verbose=False):
         ''' generate orders from segtrends '''
         x_maxima, maxima, x_minima, minima = segtrends(y, segments, window, charts=charts)
-    
-        n = len(y)
+        if writer:
+            data = np.zeros((segments-1)*4)
+            for i, el in enumerate((x_maxima, maxima, x_minima, minima)):
+                start = i*(segments-1)
+                data[start:start+segments-1]=np.diff(el)
+            writer.writerow(data)
         
         # get 2 latest support point y values prior to x
         pmin = minima[-2:]

@@ -25,7 +25,7 @@ class Strategy:
     datacache = DataCache()
 
     @abc.abstractmethod
-    def apply(self, stock, data=None):
+    def apply(self, stock, data=None, writer=None):
         """ return buy(1) or sell(-1) """
         return
 
@@ -69,6 +69,7 @@ class Strategy:
     def simulate(cls, stock, start=None, end=None, npoints=False, 
                  charts=True, verbose=False, save=True):
         ''' start is a datetime or nb days prior to now '''
+        writer =  csv.writer(open('%s_input.csv' %stock, 'wb')) if save else None
         data = cls.get_data(stock, start, end, npoints, verbose=verbose)
         start = data.index[0]+timedelta(days=cls.window)
         end = data.index[-1]
@@ -81,7 +82,7 @@ class Strategy:
             start_i = start+timedelta(days=-cls.window+i)
             end_i = start+timedelta(days=i)
             data_i = data[start_i:end_i]
-            order = cls.apply(stock, data_i)
+            order = cls.apply(stock, data_i, writer)
             orders[i]=order
             if verbose:
                 print end_i+timedelta(days=1), order
@@ -89,7 +90,7 @@ class Strategy:
         if charts:
             p = data[cls.field][-n:]
             plot_orders(p, orders, stock + " (raw orders)")
-            
+        
         return orders, data[-n:]    
        
     @classmethod

@@ -46,7 +46,8 @@ class Eval:
                  min_shares=0, min_cash=0, trans_fees=10, 
                  strategy=TrendStrategy(), trade_equal_shares=False,
                  optimal=False, worst=True, min_trade_shares=True,
-                 verbose=False, debug=False, details=False):
+                 save=False, verbose=False,
+                 debug=False, details=False):
         ''' min trade is either or % in initial_cash or a number of shares '''
         ''' price field = Open, High, Low, Close, Adj Close '''
         
@@ -76,7 +77,8 @@ class Eval:
         self.optimal = optimal
         self.worst = worst
         self.min_trade_shares = min_trade_shares
-
+        self.save = save
+        
     def set_momentums(cls, buysell='log:log'):
         def get(name):
             if name == 'log':
@@ -91,8 +93,7 @@ class Eval:
         cls.buy_momentum = get(buy)
         cls.sell_momentum = get(sell)
                     
-    def run(self, stockname, signalType='shares', 
-            save=False, charts=True):
+    def run(self, stockname, signalType='shares', charts=True):
         ''' run the evaluation (strategy = string (old) or Strategy object)'''
 
         self.stockname = stockname
@@ -106,9 +107,13 @@ class Eval:
             
             title = 'automatic strategy base %s' %stockname
             if self.optimal:
-                self.orders, self.data = self.strategy.optimal(stockname, n, charts=(charts and self.details))
+                self.orders, self.data = self.strategy.optimal(stockname, n, 
+                                                               charts=(charts and self.details), 
+                                                               save=self.save)
             else:
-                self.orders, self.data = self.strategy.simulate(stockname, n, charts=(charts and self.details))
+                self.orders, self.data = self.strategy.simulate(stockname, n, 
+                                                                charts=(charts and self.details),
+                                                                save=self.save)
 
             self.BackTest(self.orders)
             #self.update_starting_point()            

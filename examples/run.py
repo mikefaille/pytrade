@@ -42,6 +42,7 @@ parser.add_argument('--logging_info', action="store_true", help='activate loggin
 parser.add_argument('--ts', action="store_true", help='trades = shares')
 parser.add_argument('--best', action="store_true", help='best algo')
 parser.add_argument('--worst', action="store_true", help='worst selling scenarios')
+parser.add_argument('--save', action="store_true", help='save strategy')
 parser.add_argument('--shares', action="store_true", help='min trade is in shares')
 parser.add_argument('--field', default='Open', help='price field = Open, High, Low, Close, Adj Close')
 args = parser.parse_args()
@@ -53,7 +54,7 @@ eval = evaluate.Eval(field=args.field, months=args.months,
                      strategy=args.strategy, details=args.details,
                      worst=args.worst, min_trade_shares=args.shares,
                      trade_equal_shares=args.ts, optimal=args.best,
-                     
+                     save=args.save,
                      verbose=args.verbose, debug=args.debug);
 eval.set_momentums(args.momentums)
 if args.logging_info:
