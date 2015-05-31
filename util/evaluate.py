@@ -148,7 +148,7 @@ class Eval:
                 min_trade=round(min_trade/self.data[self.field][i])
                 if verbose:
                     logging.info("%s: min trade is set to %s" %(min_trade, self.stockname))
-                return min_trade
+            return min_trade
         
         min_trade=get_min_trade(0, True)
 

@@ -85,7 +85,7 @@ class OptTrendStrategy(TrendStrategy):
 
     @classmethod
     def get_orders(cls, x, segments=2, window=7, charts=True, 
-                     verbose=False):
+                   verbose=False):
         ''' generate orders from segtrends '''
         from filter import movingaverage
         from trendy import segtrends 
@@ -105,7 +105,6 @@ class OptTrendStrategy(TrendStrategy):
             buy, last_buy = cls.get_order_from_trend(pmin, pmax, y[i], movy[i], last_buy)
             orders[i] = buy
         
-        # OUTPUT
         if verbose:
             print "orders", orders
         return orders
