@@ -61,8 +61,6 @@ eval = evaluate.Eval(field=args.field, months=args.months,
 eval.set_momentums(args.momentums)
 if args.logging_info:
     logging.basicConfig(level=logging.INFO)
-
-
       
 if args.cat!=None:
     print "category", args.cat

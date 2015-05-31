@@ -21,7 +21,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
 log_momentum = lambda previous: round(math.log(1+2*abs(previous))+1)
 double_momentum = lambda previous: 2*abs(previous)
 exp_momentum = lambda previous: round(math.pow(abs(previous), 2))
-no_momentum = lambda previous:round(previous) #WHY???abs(previous))
+no_momentum = lambda previous:round(previous) 
 
 from strategy import Strategy
 # import strategies 
@@ -30,7 +30,7 @@ from trendStrategy import TrendStrategy, OptTrendStrategy
 def get_strategy(name):
     if name=="trend":
         return TrendStrategy()
-    elif name=="opttrend":
+    elif name=="opt_trend":
         return OptTrendStrategy()
         logging.warning("unknown strategy %s" %name)
         return name

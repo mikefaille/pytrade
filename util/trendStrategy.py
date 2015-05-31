@@ -22,25 +22,34 @@ class TrendStrategy(Strategy):
         return order
 
     @classmethod
+    def get_order_features_from_trend(cls, segments, x_maxima, maxima, x_minima, minima):
+        data = np.zeros((segments-1)*4)
+        max_slop =  np.diff(maxima)/np.diff(x_maxima)
+        min_slop =  np.diff(minima)/np.diff(x_minima)
+
+        for i, el in enumerate((max_slop, min_slop)):
+            start = i*(segments-1)
+            data[start:start+segments-1]=el
+        for i, el in enumerate((x_maxima, x_minima)):
+            start = (i+2)*(segments-1)
+            data[start:start+segments-1]=np.diff(el)
+
+        return data
+
+    @classmethod
     def get_order(cls, y, segments=2, window=7, writer=None, charts=False, verbose=False):
         ''' generate orders from segtrends '''
         x_maxima, maxima, x_minima, minima = segtrends(y, segments, window, charts=charts)
-        max_slop =  np.diff(maxima)/np.diff(x_maxima)
-        min_slop =  np.diff(minima)/np.diff(x_minima)
-        if writer:
-            data = np.zeros((segments-1)*4)
-            for i, el in enumerate((max_slop, min_slop)):
-                start = i*(segments-1)
-                data[start:start+segments-1]=el
-            for i, el in enumerate((x_maxima, x_minima)):
-                start = (i+2)*(segments-1)
-                data[start:start+segments-1]=np.diff(el)
-
-            writer.writerow(data)
         
+        if writer:
+            data = cls.get_order_features_from_trend(cls, segments, x_maxima, maxima, 
+                                                     x_minima, minima)
+            writer.writerow(data)
+        return cls.get_order_from_trend(minima[-2:], maxima[-2:])
+
+    def get_order_from_trend(cls, pmins, pmax):
         # get 2 latest support point y values prior to x
-        pmin = minima[-2:]
-        pmax = maxima[-2:]
+        
         # sell if support slop is negative
         min_sell = True if ((len(pmin)==2) and (pmin[1]-pmin[0])<0) else False 
         max_sell = True if ((len(pmax)==2) and (pmax[1]-pmax[0])<0) else False
@@ -58,7 +67,22 @@ class TrendStrategy(Strategy):
         return buy
 
 class OptTrendStrategy(TrendStrategy):
-    
+    @classmethod
+    def get_order_from_trend(cls, pmin, pmax, y, movy, last_buy):
+        # sell if support slop is negative
+        min_sell = True if ((len(pmin)==2) and (pmin[1]-pmin[0])<0) else False 
+        max_sell = True if ((len(pmax)==2) and (pmax[1]-pmax[0])<0) else False 
+        
+        # if support down, sell
+        buy = -1 if (min_sell and max_sell) else 0
+        # buy only if lower the moving average else sale
+        buy = 1 if ((buy == 0) and (y<movy)) else -1
+        # sell only if ...
+        buy= -1 if ((buy == -1) and y>last_buy) else 1
+        
+        last_buy = y if (buy==1) else last_buy
+        return buy, last_buy
+
     @classmethod
     def get_orders(cls, x, segments=2, window=7, charts=True, 
                      verbose=False):
@@ -73,28 +97,13 @@ class OptTrendStrategy(TrendStrategy):
         # generate order strategy
         orders = np.zeros(n)
         last_buy = y[0]
-        last_sale = y[0]
         
         for i in range(1,n):
             # get 2 latest support point y values prior to x
             pmin = list(minima[np.where(x_minima<=i)][-2:])
             pmax = list(maxima[np.where(x_maxima<=i)][-2:])
-            # sell if support slop is negative
-            min_sell = True if ((len(pmin)==2) and (pmin[1]-pmin[0])<0) else False 
-            max_sell = True if ((len(pmax)==2) and (pmax[1]-pmax[0])<0) else False 
-            
-            # if support down, sell
-            buy = -1 if (min_sell and max_sell) else 0
-            # buy only if lower the moving average else sale
-            buy = 1 if ((buy == 0) and (y[i]<movy[i])) else -1
-            # sell only if ...
-            buy= -1 if ((buy == -1) and y[i]>last_buy) else 1
-            
-            buy_price_dec = y[i]<last_buy
-            sale_price_dec = y[i]<last_sale
+            buy, last_buy = cls.get_order_from_trend(pmin, pmax, y[i], movy[i], last_buy)
             orders[i] = buy
-            last_buy = y[i] if (buy==1) else last_buy
-            last_sale = y[i] if (buy==-1) else last_sale
         
         # OUTPUT
         if verbose:
