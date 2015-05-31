@@ -57,6 +57,8 @@ class TrendStrategy(Strategy):
     
         return buy
 
+class OptTrendStrategy(TrendStrategy):
+    
     @classmethod
     def get_orders(cls, x, segments=2, window=7, charts=True, 
                      verbose=False):
@@ -100,7 +102,7 @@ class TrendStrategy(Strategy):
         return orders
 
     @classmethod
-    def optimal(cls, stock, start, end=None, npoints=False,
+    def simulate(cls, stock, start, end=None, npoints=False,
                  charts=True, verbose=False, save=True):
         ''' start is a datetime or nb days prior to now '''
         data = cls.get_data(stock, start, end, npoints, verbose=verbose)

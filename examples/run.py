@@ -46,6 +46,8 @@ parser.add_argument('--save', action="store_true", help='save strategy')
 parser.add_argument('--shares', action="store_true", help='min trade is in shares')
 parser.add_argument('--field', default='Open', help='price field = Open, High, Low, Close, Adj Close')
 args = parser.parse_args()
+if args.best:
+    args.strategy="opt_trend"
 
 eval = evaluate.Eval(field=args.field, months=args.months, 
                      init_cash=args.init_cash, init_shares=args.init_shares,

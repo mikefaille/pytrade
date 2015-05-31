@@ -25,12 +25,13 @@ no_momentum = lambda previous:round(previous) #WHY???abs(previous))
 
 from strategy import Strategy
 # import strategies 
-from trendStrategy import TrendStrategy
+from trendStrategy import TrendStrategy, OptTrendStrategy
 
 def get_strategy(name):
     if name=="trend":
         return TrendStrategy()
-    else:
+    elif name=="opttrend":
+        return OptTrendStrategy()
         logging.warning("unknown strategy %s" %name)
         return name
 
@@ -92,8 +93,8 @@ class Eval:
         buy, sell = buysell.split(":")
         cls.buy_momentum = get(buy)
         cls.sell_momentum = get(sell)
-                    
-    def run(self, stockname, signalType='shares', charts=True):
+   
+    def run(self, stockname, charts=True):
         ''' run the evaluation (strategy = string (old) or Strategy object)'''
 
         self.stockname = stockname
@@ -106,15 +107,9 @@ class Eval:
         if isinstance(self.strategy, Strategy): 
             
             title = 'automatic strategy base %s' %stockname
-            if self.optimal:
-                self.orders, self.data = self.strategy.optimal(stockname, n, 
-                                                               charts=(charts and self.details), 
-                                                               save=self.save)
-            else:
-                self.orders, self.data = self.strategy.simulate(stockname, n, 
-                                                                charts=(charts and self.details),
-                                                                save=self.save)
-
+            self.orders, self.data = self.strategy.simulate(stockname, n, 
+                                                             charts=charts,
+                                                             save=self.save)
             self.BackTest(self.orders)
             #self.update_starting_point()            
             
