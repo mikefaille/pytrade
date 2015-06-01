@@ -23,6 +23,7 @@ class Strategy:
     __metaclass__ = abc.ABCMeta
     field = 'Close'
     datacache = DataCache()
+    predict = None
 
     @abc.abstractmethod
     def apply(self, stock, data=None, writer=None):

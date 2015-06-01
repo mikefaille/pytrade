@@ -6,6 +6,7 @@ from pandas.core.frame import DataFrame
 from trendy import segtrends
 import numpy as np
 import csv
+    
 
 class TrendStrategy(Strategy):
     window = 21
@@ -42,11 +43,16 @@ class TrendStrategy(Strategy):
         ''' generate orders from segtrends '''
         x_maxima, maxima, x_minima, minima = segtrends(y, segments, window, charts=charts)
         
-        if writer:
+        if writer or cls.predict:
             data = cls.get_order_features_from_trend(segments, x_maxima, maxima, 
                                                      x_minima, minima)
-            writer.writerow(data)
-        return cls.get_order_from_trend(minima, maxima, verbose)
+            if writer:
+                writer.writerow(data)
+
+        if cls.predict:
+            return cls.predict([data])
+        else: 
+            return cls.get_order_from_trend(minima, maxima, verbose)
 
     @classmethod
     def get_order_from_trend(cls, minima, maxima, verbose=False):

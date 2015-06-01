@@ -4,7 +4,6 @@ from filter import movingaverage
 import math
 import logging
 import pandas as pd
-#import pandas.io.data as pdata
 from util.cache import DataCache
 from datetime import timedelta
 from datetime import date
@@ -32,6 +31,7 @@ def get_strategy(name):
         return TrendStrategy()
     elif name=="opt_trend":
         return OptTrendStrategy()
+    else:
         logging.warning("unknown strategy %s" %name)
         return name
 
@@ -47,7 +47,7 @@ class Eval:
                  min_shares=0, min_cash=0, trans_fees=10, 
                  strategy=TrendStrategy(), trade_equal_shares=False,
                  optimal=False, worst=True, min_trade_shares=True,
-                 save=False, verbose=False,
+                 save=False, verbose=False, 
                  debug=False, details=False):
         ''' min trade is either or % in initial_cash or a number of shares '''
         ''' price field = Open, High, Low, Close, Adj Close '''
