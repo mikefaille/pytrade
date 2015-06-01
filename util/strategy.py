@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import math
 import csv
+import logging
 
 import pandas.io.data as pdata
 from datetime import timedelta, date
@@ -31,46 +32,46 @@ class Strategy:
         return
 
     @classmethod
-    def get_data(cls, stock, start, end=None, npoints=False, verbose=False):
+    def get_data(self, stock, start, end=None, npoints=False, verbose=False):
         end = end if end!=None else date.today()-timedelta(days=1)
         if isinstance(start, int):
             if npoints:
-                data = cls.datacache.DataReader(stock, "yahoo")[-start:]
+                data = self.datacache.DataReader(stock, "yahoo")[-start:]
             else:
                 start = end-timedelta(days=start)
                  # add required padding 
-                data = cls.datacache.DataReader(stock, "yahoo",
-                                                start=start-timedelta(days=cls.window),
+                data = self.datacache.DataReader(stock, "yahoo",
+                                                start=start-timedelta(days=self.window),
                                                 end=end)
         if verbose:
             print "period:", start, end, ";ndays =",(end-start).days
        
         return data
 
-    @classmethod
-    def simulate(cls, stock, start=None, end=None, npoints=False, 
+    def simulate(self, stock, start=None, end=None, npoints=False, 
                  charts=True, verbose=False, save=True):
         ''' start is a datetime or nb days prior to now '''
+        logging.info(sys._getframe().f_code.co_name)
         writer =  csv.writer(open('%s_input.csv' %stock, 'wb')) if save else None
-        data = cls.get_data(stock, start, end, npoints, verbose=verbose)
-        start = data.index[0]+timedelta(days=cls.window)
+        data = self.get_data(stock, start, end, npoints, verbose=verbose)
+        start = data.index[0]+timedelta(days=self.window)
         end = data.index[-1]
                                 
-        n = len(data)-cls.window+1
+        n = len(data)-self.window+1
         orders=np.zeros(n)
        
         # ensure orders[0]=0 (initial point)
         for i in range(1,  n):
-            start_i = start+timedelta(days=-cls.window+i)
+            start_i = start+timedelta(days=-self.window+i)
             end_i = start+timedelta(days=i)
             data_i = data[start_i:end_i]
-            order = cls.apply(stock, data_i, writer)
+            order = self.apply(stock, data_i, writer)
             orders[i]=order
             if verbose:
                 print end_i+timedelta(days=1), order
         
         if charts:
-            p = data[cls.field][-n:]
+            p = data[self.field][-n:]
             plot_orders(p, orders, stock + " (raw orders)")
         
         return orders, data[-n:]    

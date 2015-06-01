@@ -46,7 +46,7 @@ class Eval:
                  init_cash=20000, init_shares=30, min_trade=30, 
                  min_shares=0, min_cash=0, trans_fees=10, 
                  strategy=TrendStrategy(), trade_equal_shares=False,
-                 optimal=False, worst=True, min_trade_shares=True,
+                 worst=True, min_trade_shares=True,
                  save=False, verbose=False, 
                  debug=False, details=False):
         ''' min trade is either or % in initial_cash or a number of shares '''
@@ -68,18 +68,21 @@ class Eval:
         self.min_trade = min_trade #if isinstance(min_trade, int) else int(min_trade*init_cash)
 
         self.trans_fees = trans_fees
-        if isinstance(strategy, Strategy):
-            self.strategy = strategy
-        elif isinstance(strategy, str):
-            self.strategy = get_strategy(strategy)
+        self.set_strategy(strategy)
         self.verbose = verbose
         self.debug = debug
         self.details = details
-        self.optimal = optimal
         self.worst = worst
         self.min_trade_shares = min_trade_shares
         self.save = save
         
+    def set_strategy(self, strategy):
+        if isinstance(strategy, Strategy):
+            self.strategy = strategy
+        elif isinstance(strategy, str):
+            self.strategy = get_strategy(strategy)
+            logging.info("strategy %s" %self.strategy.__class__)
+
     def set_momentums(cls, buysell='log:log'):
         def get(name):
             if name == 'log':

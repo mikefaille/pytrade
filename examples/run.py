@@ -18,7 +18,7 @@ import pandas as pd
 import argparse
 import logging
 from util.strategy import Strategy 
-from util.dataset import load_strategy
+from util.dataset import load_strategy, train_strategy
 
 pd.set_option('precision', 3) 
 parser = argparse.ArgumentParser(description=__doc__)
@@ -38,7 +38,8 @@ parser.add_argument('--cat', default=None, type=int, help='fetch stocks from cat
 parser.add_argument('--fetch_limit', default=None, type=int, help='fetch limit nb of stocks')
 parser.add_argument('--momentums', default="log:log", 
                     help='momentums x:x (x=log, exp, double, none)')
-parser.add_argument('--load', default=False, help='load trained strategy')
+parser.add_argument('--load', default=None, help='load trained strategy')
+parser.add_argument('--train', action="store_true", help='train strategy')
 parser.add_argument('--test', action="store_true", help='test example stocks')
 parser.add_argument('--strategy', default='trend', help='strategy to apply')
 parser.add_argument('--now', action="store_true", help='get buy/sale now')
@@ -51,6 +52,12 @@ parser.add_argument('--ref', action="store_true", help='ref ideal case')
 parser.add_argument('--shares', action="store_true", help='min trade is in shares')
 parser.add_argument('--field', default='Open', help='price field = Open, High, Low, Close, Adj Close')
 args = parser.parse_args()
+
+if args.best:
+    args.strategy='opt_trend'
+
+if args.logging_info:
+    logging.basicConfig(level=logging.INFO)
 
 if args.ref:
     print "activating ref ideal case"
@@ -75,18 +82,16 @@ eval = evaluate.Eval(field=args.field, months=args.months,
                      min_cash=args.min_cash, min_shares=args.min_shares, 
                      strategy=args.strategy, details=args.details,
                      worst=args.worst, min_trade_shares=args.shares,
-                     trade_equal_shares=args.ts, optimal=args.best,
+                     trade_equal_shares=args.ts,
                      save=args.save,
                      verbose=args.verbose, debug=args.debug)
 
 eval.set_momentums(args.momentums)
-if args.logging_info:
-    logging.basicConfig(level=logging.INFO)
       
 if args.load:
     exp = load_strategy(args.load)
     Strategy.predict = exp.network.predict
-
+    
 if args.cat!=None:
     print "category", args.cat
     from stocklist.fetch import Fetch
@@ -113,7 +118,17 @@ elif len(stocks)>1:
     eval.min_trade_shares=False
     eval.eval_best(stocks, charts=args.charts)
 else: # evalue strategy 
-    eval.run(stocks[0], charts=args.charts)
+    if args.train:
+        eval.save=True;eval.set_strategy('opt_trend')
+        print "generating optimal orders"
+        eval.run(stocks[0], charts=False)
+        print "generating features"
+        eval.save=True;eval.set_strategy('opt_trend')
+        eval.run(stocks[0], charts=False)
+        print "training"
+        train_strategy(stocks[0])
+    else:
+        eval.run(stocks[0], charts=args.charts)
     if args.charts and args.details:
         eval.plot_field('pnl')
     print eval

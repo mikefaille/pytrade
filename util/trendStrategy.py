@@ -6,6 +6,8 @@ from pandas.core.frame import DataFrame
 from trendy import segtrends
 import numpy as np
 import csv
+import sys
+import logging
     
 
 class TrendStrategy(Strategy):
@@ -120,21 +122,22 @@ class OptTrendStrategy(TrendStrategy):
             print "orders", orders
         return orders
 
-    @classmethod
-    def simulate(cls, stock, start, end=None, npoints=False,
+    #@classmethod
+    def simulate(self, stock, start, end=None, npoints=False,
                  charts=True, verbose=False, save=True):
         ''' start is a datetime or nb days prior to now '''
-        data = cls.get_data(stock, start, end, npoints, verbose=verbose)
+        logging.info(sys._getframe().f_code.co_name)
+        data = self.get_data(stock, start, end, npoints, verbose=verbose)
         n = len(data)
         if verbose:
             print "period:", data.index[0], data.index[-1], ";ndays =",n
             print data['Open']
         #TODO: check open
-        orders = cls.get_orders(data['Open'], segments=n/5, window=7, charts=charts)
+        orders = self.get_orders(data['Open'], segments=n/5, window=7, charts=charts)
         if save:
             with open('%s_orders.csv' %stock, 'wb') as f:
                 writer = csv.writer(f)
                 #writer.writerow(['date', 'order'])
-                for date, order in zip(data.index[cls.window:], orders[cls.window:]):
+                for date, order in zip(data.index[self.window:], orders[self.window:]):
                     writer.writerow([date, order])
         return orders, data 
