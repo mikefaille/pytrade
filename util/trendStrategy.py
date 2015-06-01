@@ -50,7 +50,7 @@ class TrendStrategy(Strategy):
                 writer.writerow(data)
 
         if cls.predict:
-            return cls.predict([data])
+            order = -1 if cls.predict([data])==0 else 1
         else: 
             return cls.get_order_from_trend(minima, maxima, verbose)
 
