@@ -19,8 +19,8 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
 
 log_momentum = lambda previous: round(math.log(1+2*abs(previous))+1)
 double_momentum = lambda previous: 2*abs(previous)
-exp_momentum = lambda previous: round(math.pow(abs(previous), 2))
-no_momentum = lambda previous:round(previous) 
+exp_momentum = lambda previous: round(math.pow(abs(previous+.5), 2))
+no_momentum = lambda previous:abs(previous )
 
 from strategy import Strategy
 # import strategies 
@@ -178,7 +178,7 @@ class Eval:
                     if order>0:
                         orders[i] = self.buy_momentum(orders[i-1])
                     elif order<0:
-                        orders[i] = self.sell_momentum(orders[i-1])
+                        orders[i] = -self.sell_momentum(orders[i-1])
             return orders[i]
 
         for i in range(len(orders)):
