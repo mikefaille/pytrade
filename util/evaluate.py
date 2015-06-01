@@ -153,6 +153,7 @@ class Eval:
         min_trade=get_min_trade(0, True)
 
         if self.worst:
+            logging.info("set worst trading condition")
             buy_field='High'
             sell_field='Low'
         else:
