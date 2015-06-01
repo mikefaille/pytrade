@@ -5,6 +5,7 @@ from strategy import Strategy
 from pandas.core.frame import DataFrame
 from trendy import segtrends
 import numpy as np
+import csv
 
 class TrendStrategy(Strategy):
     window = 21
@@ -42,14 +43,16 @@ class TrendStrategy(Strategy):
         x_maxima, maxima, x_minima, minima = segtrends(y, segments, window, charts=charts)
         
         if writer:
-            data = cls.get_order_features_from_trend(cls, segments, x_maxima, maxima, 
+            data = cls.get_order_features_from_trend(segments, x_maxima, maxima, 
                                                      x_minima, minima)
             writer.writerow(data)
-        return cls.get_order_from_trend(minima[-2:], maxima[-2:])
+        return cls.get_order_from_trend(minima, maxima, verbose)
 
-    def get_order_from_trend(cls, pmins, pmax):
+    @classmethod
+    def get_order_from_trend(cls, minima, maxima, verbose=False):
         # get 2 latest support point y values prior to x
-        
+        pmin = minima[-2:]
+        pmax = maxima[-2:]
         # sell if support slop is negative
         min_sell = True if ((len(pmin)==2) and (pmin[1]-pmin[0])<0) else False 
         max_sell = True if ((len(pmax)==2) and (pmax[1]-pmax[0])<0) else False
@@ -68,7 +71,9 @@ class TrendStrategy(Strategy):
 
 class OptTrendStrategy(TrendStrategy):
     @classmethod
-    def get_order_from_trend(cls, pmin, pmax, y, movy, last_buy):
+    def get_order_from_trend(cls, minima, maxima, y, movy, last_buy):
+        pmin = minima[-2:]
+        pmax = maxima[-2:]
         # sell if support slop is negative
         min_sell = True if ((len(pmin)==2) and (pmin[1]-pmin[0])<0) else False 
         max_sell = True if ((len(pmax)==2) and (pmax[1]-pmax[0])<0) else False 
@@ -100,8 +105,8 @@ class OptTrendStrategy(TrendStrategy):
         
         for i in range(1,n):
             # get 2 latest support point y values prior to x
-            pmin = list(minima[np.where(x_minima<=i)][-2:])
-            pmax = list(maxima[np.where(x_maxima<=i)][-2:])
+            pmin = minima[np.where(x_minima<=i)]
+            pmax = maxima[np.where(x_maxima<=i)]
             buy, last_buy = cls.get_order_from_trend(pmin, pmax, y[i], movy[i], last_buy)
             orders[i] = buy
         
@@ -118,9 +123,10 @@ class OptTrendStrategy(TrendStrategy):
         if verbose:
             print "period:", data.index[0], data.index[-1], ";ndays =",n
             print data['Open']
+        #TODO: check open
         orders = cls.get_orders(data['Open'], segments=n/5, window=7, charts=charts)
         if save:
-            with open('%s_trade.csv' %stock, 'wb') as f:
+            with open('%s_orders.csv' %stock, 'wb') as f:
                 writer = csv.writer(f)
                 #writer.writerow(['date', 'order'])
                 for date, order in zip(data.index[cls.window:], orders[cls.window:]):

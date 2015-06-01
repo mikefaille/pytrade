@@ -8,7 +8,7 @@
 find the best stock from choices on which you should apply the strategy 
     base on historic data 
 
-python run.py --month 1 -s TSLA --charts --details --init_shares 0 --verbose --ts --fees 0 --momentum non:none --best --shares --min_trade 10
+python run.py --month 1 -s TSLA --charts --details --init_shares 0 --verbose --ts --fees 0 --momentum none:none --best --shares --min_trade 10
 2015-05-2015-05-27  12996.9 -10     -2485.1   0     0     248.51  10511.8  511.827  12996.9 -10     -2485.1   0     0     248.51  10511.8  511.8
 
 '''
@@ -43,9 +43,25 @@ parser.add_argument('--ts', action="store_true", help='trades = shares')
 parser.add_argument('--best', action="store_true", help='best algo')
 parser.add_argument('--worst', action="store_true", help='worst selling scenarios')
 parser.add_argument('--save', action="store_true", help='save strategy')
+parser.add_argument('--ref', action="store_true", help='ref ideal case')
 parser.add_argument('--shares', action="store_true", help='min trade is in shares')
 parser.add_argument('--field', default='Open', help='price field = Open, High, Low, Close, Adj Close')
 args = parser.parse_args()
+
+if args.ref:
+    print "activating ref ideal case"
+    args.stocks="TSLA"
+    args.months=12
+    args.charts=True
+    args.details=True
+    args.init_shares=0
+    args.ts=True
+    args.fees=0
+    args.momentum="none:none"
+    args.shares=True
+    args.min_trade=10
+    args.best=True
+
 if args.best:
     args.strategy="opt_trend"
 
