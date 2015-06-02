@@ -74,17 +74,17 @@ class Strategy:
         
         return orders, data[-n:]   
 
-    def save(self, stock, orders, data, name=None, verbose=False):
-        name = name if name else self.name() 
-        fname = '%s_%s_orders.csv' %(stock, name)
+    def save(self, stock, data, dates, field, verbose=False):
+        class_name = self.name() 
+        fname = '%s_%s_%s.csv' %(stock, class_name, field)
         if verbose:
             print 'saving %s' %fname
             
         with open(fname, 'wb') as f:
             writer = csv.writer(f)
             #writer.writerow(['date', 'order'])
-            for date, order in zip(data.index[self.window:], orders[self.window:]):
-                writer.writerow([date, order])
+            for date, val in zip(dates[self.window:], data[self.window:]):
+                writer.writerow([date, val])
                 
        
             

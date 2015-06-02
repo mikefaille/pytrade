@@ -116,11 +116,14 @@ class Eval:
             if charts:
                 plot_orders(self.data[self.field], self.orders, stockname + " (raw orders)")
             if self.save:
-                self.strategy.save(stockname, self.orders, self.data, 
-                                   verbose=self.verbose)
+                self.strategy.save(stockname, self.orders, self.data.index, 
+                                   'orders', verbose=self.verbose)
 
             self.BackTest(self.orders)
-            #self.update_starting_point()            
+            #self.update_starting_point()
+            for field in ('trade', 'pnl'):
+                self.strategy.save(stockname, self.data[field], self.data.index, 
+                                   field, verbose=self.verbose)
             
             if charts:
                 plot_orders(self.data[self.field], self.data['trade'], stockname, show=True)
