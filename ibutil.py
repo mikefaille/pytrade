@@ -43,11 +43,11 @@ def create_order(order_type, quantity, action):
 import pickle
 import os
 class IB:
-    self __init__(self):
-        tws_conn = Connection.create(port=7496, clientId=999)
+    def __init__(self):
+        self.tws_conn = Connection.create(port=7496, clientId=999)
         self.tws_conn.connect()
-        tws_conn.register(error_handler, 'Error')
-        tws_conn.registerAll(reply_handler)
+        self.tws_conn.register(error_handler, 'Error')
+        self.tws_conn.registerAll(reply_handler)
         self.ib_orderid_fname="ib_orderid_fname.p"
         if os.path.isfile(self.ib_orderid_fname):
             self.order_id = pickle.load(open(self.ib_orderid_fname, 'rb'))
@@ -60,15 +60,16 @@ class IB:
     def create_order(self, stock="TSLA", order=99):
         action = 'BUY' if order>0 else 'SELL'
         # Create a contract in GOOG stock via SMART order routing
-        goog_contract = create_contract('GOOG', 'STK', 'SMART', 'SMART', 'USD')
+        goog_contract = create_contract(stock, 'STK', 'SMART', 'SMART', 'USD')
 
         # Go long 100 shares of Google
         goog_order = create_order('MKT', abs(order), action)
         
         # Use the connection to the send the order to IB
         self.tws_conn.placeOrder(self.order_id, goog_contract, goog_order)
-        self.save_order_id()
-        self.order_id+=1
+        print "order %s %s" %(self.order_id, stock) 
+	self.order_id+=1
+	self.save_order_id()
 
     def close(self):
         # Disconnect from TWS
