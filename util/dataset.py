@@ -7,7 +7,19 @@ import sklearn.metrics
 import theanets
 from sklearn.metrics import accuracy_score
 import logging
-from trendStrategy import OptTrendStrategy
+from trendStrategy import OptTrendStrategy, TrendStrategy
+from util import visu
+
+def compare(stock, field='orders', strategy="TrendStrategy_predicted", best=OptTrendStrategy.__name__):
+    best_fname="{0}_{1}_{2}.csv".format(stock, best, field)
+    predicted_fname="{0}_{1}_{2}.csv".format(stock, strategy, field)
+    print "comparing",best_fname,predicted_fname
+    best_data = np.loadtxt(best_fname, usecols=[1], delimiter=',')
+    predicted_data = np.loadtxt(predicted_fname, usecols=[1], delimiter=',')
+    min_size = min(len(best_data), len(predicted_data))
+    title = "%s vs %s" %(best, strategy)
+    visu.compare(best_data[-min_size:], predicted_data[-min_size:], title)
+
 def load_dataset(stock, ratio=0.8, name=OptTrendStrategy.__name__):
     ''' return train, valid (x,y) '''
     orders = np.loadtxt("{0}_{1}_orders.csv".format(stock, name), usecols=[1], delimiter=',')
@@ -75,8 +87,11 @@ if __name__ == "__main__":
     parser.add_argument('--stock', '-s', default="TSLA", help='stock')
     parser.add_argument('--ratio', '-r', default=0.8, type=int, help='train/valid ratio')
     parser.add_argument('--min', '-m', default=0.001, type=int, help='min improvement (stop learning)')
+    parser.add_argument('--field', default='orders', help='compare field')
     args = parser.parse_args()
-    
+    if args.field:
+        compare(args.stock, args.field)
+        
     train, valid = load_dataset(args.stock)
     exp = train_strategy(args.stock, args.ratio, args.min)
     exp = load_strategy(args.stock, True)
