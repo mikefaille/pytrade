@@ -43,8 +43,8 @@ def create_order(order_type, quantity, action):
 import pickle
 import os
 class IB:
-    def __init__(self):
-        self.tws_conn = Connection.create(port=7496, clientId=999)
+    def __init__(self, clientId=999):
+        self.tws_conn = Connection.create(port=7496, clientId=clientId)
         self.tws_conn.connect()
         self.tws_conn.register(error_handler, 'Error')
         self.tws_conn.registerAll(reply_handler)

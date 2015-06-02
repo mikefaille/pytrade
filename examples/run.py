@@ -51,6 +51,7 @@ parser.add_argument('--save', action="store_true", help='save strategy')
 parser.add_argument('--ref', action="store_true", help='ref ideal case')
 parser.add_argument('--shares', action="store_true", help='min trade is in shares')
 parser.add_argument('--field', default='Open', help='price field = Open, High, Low, Close, Adj Close')
+parser.add_argument('--ib', action="store_true", help='send order on ib')
 args = parser.parse_args()
 
 if args.best:
@@ -112,7 +113,13 @@ else:
 # should you trade it now?
 if args.now:
     for stock in stocks:
-        print stock,"->",eval.strategy.apply(stock)
+        order = eval.strategy.apply(stock)
+        print stock,"->", order
+        if args.ib:
+            from ibutil import IB
+            ib=IB()
+            ib.create_order(stock)
+
 # evaluate strategy on different stocks 
 elif len(stocks)>1:
     eval.min_trade_shares=False
