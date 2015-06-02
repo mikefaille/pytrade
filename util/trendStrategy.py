@@ -13,7 +13,15 @@ import logging
 class TrendStrategy(Strategy):
     window = 21
     field = 'Close'
-    
+    predict = None
+
+    def name(self):
+        name = self.__class__.__name__
+        if self.predict:
+            return name+"_predicted"
+        else:
+            return name
+
     @classmethod
     def apply(cls, stock, data=None, writer=None):
         ''' return buy (1) or sale (-1) '''
@@ -52,7 +60,8 @@ class TrendStrategy(Strategy):
                 writer.writerow(data)
 
         if cls.predict:
-            return -1 if cls.predict([data])==0 else 1
+            order = -1 if cls.predict([data])==0 else 1
+            return order
         else: 
             return cls.get_order_from_trend(minima, maxima, verbose)
 
@@ -122,7 +131,6 @@ class OptTrendStrategy(TrendStrategy):
             print "orders", orders
         return orders
 
-    #@classmethod
     def simulate(self, stock, start, end=None, npoints=False,
                  charts=True, verbose=False, save=True):
         ''' start is a datetime or nb days prior to now '''
@@ -134,10 +142,5 @@ class OptTrendStrategy(TrendStrategy):
             print data['Open']
         #TODO: check open
         orders = self.get_orders(data['Open'], segments=n/5, window=7, charts=charts)
-        if save:
-            with open('%s_orders.csv' %stock, 'wb') as f:
-                writer = csv.writer(f)
-                #writer.writerow(['date', 'order'])
-                for date, order in zip(data.index[self.window:], orders[self.window:]):
-                    writer.writerow([date, order])
+        
         return orders, data 

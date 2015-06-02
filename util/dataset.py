@@ -7,9 +7,10 @@ import sklearn.metrics
 import theanets
 from sklearn.metrics import accuracy_score
 import logging
-def load_dataset(stock, ratio=0.8):
+from trendStrategy import OptTrendStrategy
+def load_dataset(stock, ratio=0.8, name=OptTrendStrategy.__name__):
     ''' return train, valid (x,y) '''
-    orders = np.loadtxt("{0}_orders.csv".format(stock), usecols=[1], delimiter=',')
+    orders = np.loadtxt("{0}_{1}_orders.csv".format(stock, name), usecols=[1], delimiter=',')
     orders[orders==-1]=0
     features = np.loadtxt("{0}_input.csv".format(stock), delimiter=',')
     if len(orders)!=len(features):

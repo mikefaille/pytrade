@@ -113,6 +113,12 @@ class Eval:
             self.orders, self.data = self.strategy.simulate(stockname, n, 
                                                              charts=charts,
                                                              save=self.save)
+            if charts:
+                plot_orders(self.data[self.field], self.orders, stockname + " (raw orders)")
+            if self.save:
+                self.strategy.save(stockname, self.orders, self.data, 
+                                   verbose=self.verbose)
+
             self.BackTest(self.orders)
             #self.update_starting_point()            
             

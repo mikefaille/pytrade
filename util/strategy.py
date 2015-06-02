@@ -24,8 +24,10 @@ class Strategy:
     __metaclass__ = abc.ABCMeta
     field = 'Close'
     datacache = DataCache()
-    predict = None
-
+    
+    def name(self):
+        return self.__class__.__name__
+    
     @abc.abstractmethod
     def apply(self, stock, data=None, writer=None):
         """ return buy(1) or sell(-1) """
@@ -70,10 +72,19 @@ class Strategy:
             if verbose:
                 print end_i+timedelta(days=1), order
         
-        if charts:
-            p = data[self.field][-n:]
-            plot_orders(p, orders, stock + " (raw orders)")
-        
-        return orders, data[-n:]    
+        return orders, data[-n:]   
+
+    def save(self, stock, orders, data, name=None, verbose=False):
+        name = name if name else self.name() 
+        fname = '%s_%s_orders.csv' %(stock, name)
+        if verbose:
+            print 'saving %s' %fname
+            
+        with open(fname, 'wb') as f:
+            writer = csv.writer(f)
+            #writer.writerow(['date', 'order'])
+            for date, order in zip(data.index[self.window:], orders[self.window:]):
+                writer.writerow([date, order])
+                
        
             

@@ -50,6 +50,7 @@ parser.add_argument('--worst', action="store_true", help='worst selling scenario
 parser.add_argument('--save', action="store_true", help='save strategy')
 parser.add_argument('--ref', action="store_true", help='ref ideal case')
 parser.add_argument('--shares', action="store_true", help='min trade is in shares')
+parser.add_argument('--pnl', action="store_true", help='show PnL (profit and lost"')
 parser.add_argument('--field', default='Open', help='price field = Open, High, Low, Close, Adj Close')
 parser.add_argument('--ib', action="store_true", help='send order on ib')
 args = parser.parse_args()
@@ -91,7 +92,7 @@ eval.set_momentums(args.momentums)
       
 if args.load:
     exp = load_strategy(args.load)
-    Strategy.predict = exp.network.predict
+    eval.strategy.predict = exp.network.predict
     
 if args.cat!=None:
     print "category", args.cat
@@ -136,7 +137,7 @@ else: # evalue strategy
         train_strategy(stocks[0])
     else:
         eval.run(stocks[0], charts=args.charts)
-    if args.charts and args.details:
+    if args.pnl or args.details:
         eval.plot_field('pnl')
     print eval
     
