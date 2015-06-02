@@ -2,3 +2,6 @@
 	path = lib/bruces
 	url = https://github.com/overridelogic/bruces.git
 	branch = v0.2.3-dev
+[submodule "IbPy"]
+	path = IbPy
+	url = https://github.com/blampe/IbPy.git
