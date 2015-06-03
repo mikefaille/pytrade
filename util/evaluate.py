@@ -176,8 +176,8 @@ class Eval:
         n = len(orders)
         cash = self.init_cash
         shares = self.init_shares
-        cash_available = (cash - self.min_cash) if self.min_cash!=None else MAXINT  
-        shares_available = (shares - self.min_shares) if self.min_shares!=None else MAXINT
+        #cash_available = (cash - self.min_cash) 
+        #shares_available = (shares - self.min_shares) 
         
         fees=0
         self.shares = np.zeros(n)
@@ -200,7 +200,7 @@ class Eval:
             order = momentum(orders, i)
             
             if  self.trade_equal_shares:
-                trade =  (order*min_trade) - shares
+                trade =  (order*min_trade) - shares 
             else:
                 trade = (order*min_trade)
                 
@@ -211,20 +211,20 @@ class Eval:
             if order>0:
                 buy_price = self.data[buy_field][i]
                 trade_value = trade*buy_price + self.trans_fees
-                if (trade_value > cash_available): 
-                    trade = int((cash_available-self.trans_fees)/buy_price)
+                if (trade_value > cash): 
+                    trade = int((cash-self.trans_fees)/buy_price)
                     trade_value = trade*buy_price + self.trans_fees
             elif order<0: #sell
-                if (trade>shares_available):
-                    trade = -shares_available
+                if (abs(trade)>shares):
+                    trade = -shares
                     
                 sell_price = self.data[sell_field][i]
                 trade_value = trade*sell_price + self.trans_fees
             # update shares
             shares += trade
-            shares_available -= trade
+            #shares_available -= trade
             cash -= trade_value
-            cash_available -= trade_value
+            #cash_available -= trade_value
             self.trades[i] = trade
             self.shares[i] = shares
             self.cash[i] = cash
