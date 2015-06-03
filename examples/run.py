@@ -7,7 +7,8 @@
 
 find the best stock from choices on which you should apply the strategy 
     base on historic data 
-python  examples/run.py --month 12 -s TSLA --charts --details --init_shares 100 --min_shares 0 --min_cash 0  --fees 0 --momentum log:exp --shares --min_trade 10 --best
+
+python  examples/run.py --month 12 -s TSLA --charts --details --fees 0 --momentum none:none --shares --min_trade 10 --best  --ts --init_shares 10
 
 python  run.py --month 12 -s GS --charts --details --init_shares 0  --fees 0 --momentum log:exp --shares --min_trade 100 --best --ts
 python run.py --month 1 -s TSLA --charts --details --init_shares 0 --verbose --ts --fees 0 --momentum none:none --best --shares --min_trade 10
@@ -29,8 +30,8 @@ parser.add_argument('--months', '-m', default=12, type=int, help='history nb of 
 parser.add_argument('--init_cash', default=10000, type=int, help='initial cash')
 parser.add_argument('--init_shares', default=40, type=int, help='min trade')
 parser.add_argument('--min_trade', default=1000, type=int, help='min trade (default=$)')
-parser.add_argument('--min_shares', default=None, type=int, help='min shares')
-parser.add_argument('--min_cash', default=None, type=int, help='min cash')
+parser.add_argument('--min_shares', default=0, type=int, help='min shares')
+parser.add_argument('--min_cash', default=0, type=int, help='min cash')
 parser.add_argument('--fees', default=10, type=int, help='min fees')
 parser.add_argument('--verbose', '-v', action="store_true", help='verbose')
 parser.add_argument('--details', action="store_true", help='add details')
