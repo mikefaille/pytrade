@@ -175,9 +175,11 @@ class Eval:
         n = len(orders)
         cash = self.init_cash
         shares = self.init_shares
-        cash_available = (cash - self.min_cash) if self.min_cash else MAXINT  
-        shares_available = (shares - self.min_shares) if self.min_shares else MAXINT
-
+        print "$$$$$", shares, self.min_shares, self.min_cash
+        cash_available = (cash - self.min_cash) if self.min_cash!=None else MAXINT  
+        shares_available = (shares - self.min_shares) if self.min_shares!=None else MAXINT
+        print "######",cash_available,shares_available 
+        
         fees=0
         self.shares = np.zeros(n)
         self.cash = np.zeros(n)
@@ -210,16 +212,18 @@ class Eval:
             if order>0:
                 buy_price = self.data[buy_field][i]
                 trade_value = trade*buy_price + self.trans_fees
-                if (trade_value > cash_available) and (self.min_cash!=None): 
+                if (cash_available>0) and (trade_value > cash_available) and (self.min_cash!=None): 
                     trade = int((cash_available-self.trans_fees)/buy_price)
                     trade_value = trade*buy_price + self.trans_fees
-            elif order<0: #sell 
-                if (trade>shares_available) and (self.min_shares!=None):
+            elif order<0: #sell
+                if (shares_available>0) and (trade>shares_available) and (self.min_shares!=None):
                     trade = -shares_available
+                    
                 sell_price = self.data[sell_field][i]
                 trade_value = trade*sell_price + self.trans_fees
             # update shares
             shares += trade
+            print "$$$$", shares, trade
             shares_available -= trade
             cash -= trade_value
             cash_available -= trade_value
@@ -233,7 +237,7 @@ class Eval:
         self.data['cash'] = self.cash
         self.data['trade'] = self.trades
         self.data['fees'] = self.fees
-        self.data['value'] = self.data['shares'] * self.data['Open']#TODO['Adj Close']
+        self.data['value'] = self.data['shares'].abs() * self.data['Open']#TODO['Adj Close']
         self.data['total'] = self.data['cash']+self.data['value']
         self.data['pnl'] = self.data['total']- (self.init_cash+self.init_shares*self.data['Open'])
     

@@ -7,6 +7,8 @@
 
 find the best stock from choices on which you should apply the strategy 
     base on historic data 
+python  examples/run.py --month 12 -s TSLA --charts --details --init_shares 100 --min_shares 0 --min_cash 0  --fees 0 --momentum log:exp --shares --min_trade 10 --best
+
 python  run.py --month 12 -s GS --charts --details --init_shares 0  --fees 0 --momentum log:exp --shares --min_trade 100 --best --ts
 python run.py --month 1 -s TSLA --charts --details --init_shares 0 --verbose --ts --fees 0 --momentum none:none --best --shares --min_trade 10
 2015-05-2015-05-27  12996.9 -10     -2485.1   0     0     248.51  10511.8  511.827  12996.9 -10     -2485.1   0     0     248.51  10511.8  511.8
