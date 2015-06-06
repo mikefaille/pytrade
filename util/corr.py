@@ -10,6 +10,11 @@ def correlation(stocks, field='Adj Close'):
     rets = np.log(data/data.shift(1))
     return rets.corr()
 
+def get_best(corr, stock):
+    data=corr[stock].copy()
+    data.sort(ascending=False)
+    return data[1:]
+
 if __name__ == "__main__":
     stocks = ["TSLA", "GS", "SCTY", "AMZN", "CSCO",'FB',
               'UTX','JCI',"GOOGL",'BP','MSFT', 'IBM','NUAN','YHOO']
