@@ -50,6 +50,17 @@ class DataCache(object):
         rets = np.log(data/data.shift(1))
         return rets.corr()
 
+    def get_rolling_corr(self, a, b, window=252, field='Adj Close', plot=True):
+        data = pd.DataFrame({a:self.DataReader(a)[field]})
+        data = data.join(pd.DataFrame({b:self.DataReader(b)[field]}))
+        data = data.fillna(method='ffill')
+        rets = np.log(data/data.shift(1))
+        corr = pd.rolling_corr(rets[a], rets[b], window)
+        if plot:
+            corr.plot(grid=True, style='b')
+        else:
+            return corr
+
 data = DataCache()
 
 if __name__ == "__main__":
