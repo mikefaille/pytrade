@@ -1,7 +1,10 @@
+''' usage: from util import cache; then use cache.data (datacache object) '''
 import os
 import logging
 import pickle
 import pandas.io.data as pdata
+import pandas as pd
+import numpy as np
 
 class DataCache(object):
 
@@ -9,7 +12,6 @@ class DataCache(object):
 
     def __init__(self):
         self.cache = {}
-	   
 
     def DataReader(self, name, data_source="yahoo", start=None, end=None):
         datafilepath = self.datadir + '/' + name + '.p'
@@ -32,8 +34,27 @@ class DataCache(object):
 	    logging.info('Retreiving ' + name + ' from internet and stored')
             return get_date_range(start, end)
 
+    def get_most_correlated(self, x, stocks, field='Adj Close'):
+        corr = self.get_correlation(stocks, field)
+        data=corr[x].copy()
+        data.sort(ascending=False)
+        return data[1:]
+            
+    def get_correlation(self, stocks, field='Adj Close'):
+        ''' get correlation matrix or best correlation list of 'get_best_of' '''
+
+        data = pd.DataFrame({stocks[0]:self.DataReader(stocks[0])[field]})
+        for stock in stocks[1:]:
+            data = data.join(pd.DataFrame({stock:self.DataReader(stock)[field]}))
+        data = data.fillna(method='ffill')
+        rets = np.log(data/data.shift(1))
+        return rets.corr()
+
+data = DataCache()
 
 if __name__ == "__main__":
-    dc = DataCache()
-    print dc.DataReader('TSLA')
-
+    print data.DataReader('TSLA')
+    stocks = ["TSLA", "GS", "SCTY", "AMZN", "CSCO",'FB',
+              'UTX','JCI',"GOOGL",'BP','MSFT', 'IBM','NUAN','YHOO']
+    print data.get_correlation(stocks)
+    print data.get_most_correlated('SCTY', stocks)

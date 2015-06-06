@@ -7,7 +7,7 @@ import logging
 import pandas.io.data as pdata
 from datetime import timedelta, date
 from visu import plot_orders
-from util.cache import DataCache
+from util import cache
 
 # little hack to make in working inside heroku submodule
 import os, sys
@@ -23,7 +23,7 @@ import abc
 class Strategy:
     __metaclass__ = abc.ABCMeta
     field = 'Close'
-    datacache = DataCache()
+    datacache = cache.data
     
     def name(self):
         return self.__class__.__name__

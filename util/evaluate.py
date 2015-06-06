@@ -4,7 +4,6 @@ from filter import movingaverage
 import math
 import logging
 import pandas as pd
-from util.cache import DataCache
 from datetime import timedelta
 from datetime import date
 from visu import plot_orders, plot_field
