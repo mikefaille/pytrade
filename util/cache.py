@@ -43,23 +43,19 @@ class DataCache(object):
     def get_correlation(self, stocks, field='Adj Close'):
         ''' get correlation matrix or best correlation list of 'get_best_of' '''
 
-        data = pd.DataFrame({stocks[0]:self.DataReader(stocks[0])[field]})
+        data = pd.DataFrame({stocks[0]:self.DataReader(stocks[0])[field].pct_change()})
         for stock in stocks[1:]:
-            data = data.join(pd.DataFrame({stock:self.DataReader(stock)[field]}))
-        data = data.fillna(method='ffill')
-        rets = np.log(data/data.shift(1))
-        return rets.corr()
+            data = data.join(pd.DataFrame({stock:self.DataReader(stock)[field].pct_change()}))
+
+        return data.corr()
 
     def get_rolling_corr(self, a, b, window=252, field='Adj Close', plot=True):
-        data = pd.DataFrame({a:self.DataReader(a)[field]})
-        data = data.join(pd.DataFrame({b:self.DataReader(b)[field]}))
-        data = data.fillna(method='ffill')
-        rets = np.log(data/data.shift(1))
+        data = pd.DataFrame({a:self.DataReader(a)[field].pct_change()})
+        data = data.join(pd.DataFrame({b:self.DataReader(b)[field].pct_change()}))
         corr = pd.rolling_corr(rets[a], rets[b], window)
         if plot:
             corr.plot(grid=True, style='b')
-        else:
-            return corr
+        return corr
 
 data = DataCache()
 
