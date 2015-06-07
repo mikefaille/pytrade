@@ -34,7 +34,8 @@ class DataCache(object):
 	    logging.info('Retreiving ' + name + ' from internet and stored')
             return get_date_range(start, end)
 
-    def get_most_correlated(self, x, stocks, field='Adj Close'):
+    def get_most_correlated(self, x, stocks=None, field='Adj Close'):
+        stocks = stocks if stocks else self.cache.keys()
         corr = self.get_correlation(stocks, field)
         data=corr[x].copy()
         data.sort(ascending=False)
