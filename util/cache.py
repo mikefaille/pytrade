@@ -14,6 +14,7 @@ class DataCache(object):
         self.cache = {}
 
     def DataReader(self, name, data_source="yahoo", start=None, end=None):
+        name = name.lower()
         datafilepath = self.datadir + '/' + name + '.p'
         def get_date_range(start,end):
             start = start if start is not None else self.cache[name].index[0]
@@ -34,28 +35,36 @@ class DataCache(object):
 	    logging.info('Retreiving ' + name + ' from internet and stored')
             return get_date_range(start, end)
 
-    def get_most_correlated(self, x, stocks=None, field='Adj Close'):
+    def get_most_correlated(self, x, stocks=None, field='Adj Close', how='pct'):
         stocks = stocks if stocks else self.cache.keys()
-        corr = self.get_correlation(stocks, field)
+        corr = self.get_correlation(stocks, field, how)
         data=corr[x].copy()
         data.sort(ascending=False)
         return data[1:]
             
-    def get_correlation(self, stocks, field='Adj Close'):
-        ''' get correlation matrix or best correlation list of 'get_best_of' '''
-
-        data = pd.DataFrame({stocks[0]:self.DataReader(stocks[0])[field].pct_change()})
+    def get_data(self, stocks,  field='Adj Close', how=None):
+        ''' get field for each stock in a single dataframe '''
+        data = pd.DataFrame({stocks[0]:self.DataReader(stocks[0])[field]})
         for stock in stocks[1:]:
-            data = data.join(pd.DataFrame({stock:self.DataReader(stock)[field].pct_change()}))
+            data = data.join(pd.DataFrame({stock:self.DataReader(stock)[field]}))
+        if how=='pct':
+            data = data.pct_change()
+        elif how=='logdiff':
+            data = np.log(data / data.shift(1)) 
+        return data
 
+    def get_correlation(self, stocks, field='Adj Close', how='pct'):
+        ''' get correlation matrix or best correlation list of 'get_best_of' '''
+        data = self.get_data(stocks, field, how)
         return data.corr()
 
-    def get_rolling_corr(self, a, b, window=252, field='Adj Close', plot=True):
-        data = pd.DataFrame({a:self.DataReader(a)[field].pct_change()})
-        data = data.join(pd.DataFrame({b:self.DataReader(b)[field].pct_change()}))
-        corr = pd.rolling_corr(rets[a], rets[b], window)
+    def get_rolling_corr(self, a, b, window=252, field='Adj Close', how='pct', 
+                         plot=True):
+        data = self.get_data([a, b], field, how)
+        corr = pd.rolling_corr(data[a], data[b], window)
         if plot:
             corr.plot(grid=True, style='b')
+            data.plot()
         return corr
 
 data = DataCache()
