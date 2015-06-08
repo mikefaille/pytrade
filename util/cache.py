@@ -5,6 +5,7 @@ import pickle
 import pandas.io.data as pdata
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
 class DataCache(object):
 
@@ -16,7 +17,7 @@ class DataCache(object):
     def DataReader(self, name, data_source="yahoo", start=None, end=None):
         name = name.lower()
         datafilepath = self.datadir + '/' + name + '.p'
-        def get_date_range(start,end):
+        def get_date_range(start, end):
             start = start if start is not None else self.cache[name].index[0]
             end = end if end is not None else self.cache[name].index[-1]
             return self.cache[name][start:end]
@@ -45,6 +46,7 @@ class DataCache(object):
     def get_data(self, stocks,  field='Adj Close', how=None):
         ''' get field for each stock in a single dataframe '''
         data = pd.DataFrame({stocks[0]:self.DataReader(stocks[0])[field]})
+        data = data.fillna(method='ffill')
         for stock in stocks[1:]:
             data = data.join(pd.DataFrame({stock:self.DataReader(stock)[field]}))
         if how=='pct':
@@ -57,6 +59,18 @@ class DataCache(object):
         ''' get correlation matrix or best correlation list of 'get_best_of' '''
         data = self.get_data(stocks, field, how)
         return data.corr()
+
+    def show_correlation(self, a, b, field='Adj Close', how='pct'):
+        data = self.get_data([a, b], field, how)
+        model = pd.ols(y=data[a], x=data[b])
+        plt.plot(data[a], data[b], 'r.')
+        ax = plt.axis()  # grab axis values
+        x = np.linspace(ax[0], ax[1] + 0.01)
+        plt.plot(x, model.beta[1] + model.beta[0] * x, 'b', lw=2)
+        plt.grid(True)
+        plt.axis('tight')
+        plt.xlabel(a)
+        plt.ylabel(b)
 
     def get_rolling_corr(self, a, b, window=252, field='Adj Close', how='pct', 
                          plot=True):
