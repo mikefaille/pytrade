@@ -3,6 +3,7 @@ from datetime import timedelta
 from datetime import date
 from strategy import Strategy 
 from pandas.core.frame import DataFrame
+import pandas as pd
 from trendy import segtrends
 import numpy as np
 import csv
@@ -29,8 +30,7 @@ class TrendStrategy(Strategy):
             start= date.today()-timedelta(days=cls.window)
             end = date.today()-timedelta(days=1)
             data = cls.datacache.DataReader(stock, "yahoo", start, end) 
-        price = data[cls.field]
-        order = cls.get_order(price, segments=cls.window/5, writer=writer)
+        order = cls.get_order(data, segments=cls.window/5, writer=writer)
         return order
 
     @classmethod
@@ -49,18 +49,25 @@ class TrendStrategy(Strategy):
         return data
 
     @classmethod
-    def get_order(cls, y, segments=2, window=7, writer=None, charts=False, verbose=False):
+    def get_order(cls, data, segments=2, window=7, writer=None, charts=False, verbose=False):
         ''' generate orders from segtrends '''
-        x_maxima, maxima, x_minima, minima = segtrends(y, segments, window, charts=charts)
+        price = data[cls.field]
+        x_maxima, maxima, x_minima, minima = segtrends(price, segments, window, charts=charts)
         
         if writer or cls.predict:
-            data = cls.get_order_features_from_trend(segments, x_maxima, maxima, 
+            features = cls.get_order_features_from_trend(segments, x_maxima, maxima, 
                                                      x_minima, minima)
+            vol_pct_change = data['Volume'][-(window+1):].pct_change()[-window:]
+            last = data[cls.field][-1] 
+            roll_mean_var = (pd.rolling_mean(data[cls.field][-window:], window)[-1]-last)/last
+            roll_median_var = (pd.rolling_median(data[cls.field][-window:], window)[-1]-last)/last
+            for add in (vol_pct_change, roll_mean_var, roll_median_var):
+                features = np.append(features, add)
             if writer:
-                writer.writerow(data)
+                writer.writerow(features)
 
         if cls.predict:
-            order = -1 if cls.predict([data])==0 else 1
+            order = -1 if cls.predict([features])==0 else 1
             return order
         else: 
             return cls.get_order_from_trend(minima, maxima, verbose)
