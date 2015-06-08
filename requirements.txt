@@ -10,4 +10,25 @@ scikit-image==0.10.1
 scikit-learn==0.16.1
 scipy==0.14.0
 skdata==0.0.4
+zipline-0.7.0
+Quandl-2.8.7
+mibian-0.1.2
 -e git+http://github.com/lmjohns3/theanets@406f29d7ae363017a729a7e30f39934eb8540c11#egg=theanets-master
+
+# blocks
+#Theano framework for building and training neural networks
+#fuel
+#A data pipeline framework for machine learning
+#blocks-extras
+#A collection of extensions to the Blocks framework
+#blocks-examples
+#Examples and scripts using Blocks
+#picklable-itertools
+#itertools. But picklable.
+
+https://github.com/mila-udem/blocks.git
+https://github.com/mila-udem/fuel.git
+https://github.com/mila-udem/fuel.git
+https://github.com/mila-udem/blocks-extras.git
+https://github.com/mila-udem/blocks-extras.git
+https://github.com/mila-udem/blocks-extras.git
