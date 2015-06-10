@@ -1,7 +1,9 @@
+''' compute VaR (value at risk) of a stock from a monte carlo simulation '''
 import numpy as np
 import math
 from scipy.special import ndtri
 from random import random
+
 # based on https://www.youtube.com/watch?v=e79OtCamxD0
 # ln(S/S-1)= drift + rand * vol
 # drift = expected return for the stock
