@@ -34,7 +34,7 @@ if __name__=="__main__":
     confidence = 99.0
     prices = np.array([walk()[-1] for i in range(n)])
     prices.sort()
-    Si = prices[round((100-confidence)/100*n) ]
+    Si = np.percentile(prices, 1)
     VaR = Si - prices[0] 
     print "Si=%.2f Lowest=%.2f VaR=%.2f" %(Si, prices[0], VaR)
     
