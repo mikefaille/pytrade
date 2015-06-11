@@ -4,7 +4,7 @@
  #2) find best stock:  ./run.py --stock TSLA,GS,SCTY,AMZN,TWTR 
                        ./run.py --cat 431 --fetch_limit 5 
  #3) by or sale today: ./run.py --stock TSLA,GS,SCTY,AMZN,TWTR --now 
-
+ #4) download data   : ./run.py --download
 find the best stock from choices on which you should apply the strategy 
     base on historic data 
 
@@ -56,6 +56,7 @@ parser.add_argument('--shares', action="store_true", help='min trade is in share
 parser.add_argument('--pnl', action="store_true", help='show PnL (profit and lost"')
 parser.add_argument('--field', default='Open', help='price field = Open, High, Low, Close, Adj Close')
 parser.add_argument('--ib', action="store_true", help='send order on ib')
+parser.add_argument('--download', action="store_true", help='download all stock categories')
 args = parser.parse_args()
 
 if args.best:
@@ -96,11 +97,15 @@ eval.set_momentums(args.momentums)
 if args.load:
     exp = load_strategy(args.load)
     eval.strategy.predict = exp.network.predict
-    
-if args.cat!=None:
+
+from stocklist.fetch import Fetch
+fetch = Fetch()
+
+if args.download:
+    stocks = fetch.fetch_stocks('all')
+elif args.cat!=None:
     print "category", args.cat
-    from stocklist.fetch import Fetch
-    fetch = Fetch()
+    
     #params is a list of tuples. More info on params can be found in stocklist/filters.py
     params = [('sc', args.cat)]
     stocks = fetch.fetch_stocks(params)

@@ -1,7 +1,10 @@
 import urllib
 
 class Filter(object):
-    
+   
+    def get_all_categories(self):
+	return self.filter_dict.keys()
+
     # Endpoint
     def __init__(self):
         self.url = 'https://screener.finance.yahoo.com/b?'
