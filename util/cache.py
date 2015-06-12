@@ -45,6 +45,7 @@ class DataCache(object):
             
     def get_data(self, stocks,  field='Adj Close', how=None):
         ''' get field for each stock in a single dataframe '''
+	stocks = stock if isinstance(stocks, list) else [stocks]
         data = pd.DataFrame({stocks[0]:self.DataReader(stocks[0])[field]})
         data = data.fillna(method='ffill')
         for stock in stocks[1:]:
@@ -54,6 +55,18 @@ class DataCache(object):
         elif how=='logdiff':
             data = np.log(data / data.shift(1)) 
         return data
+
+    def plot(self, ticker, field='Adj Close'):
+        data = self.DataReader(ticker)
+        top = plt.subplot2grid((4,4), (0,0), rowspan=3, colspan=4)
+        top.plot(data.index, data[field])
+        plt.title('%s %s' %(ticker, field))
+        plt.legend(loc=2)
+        buttom = plt.subplot2grid((4,4), (3,0), rowspan=3, colspan=4)
+        buttom.bar(data.index, data.Volume)
+        plt.title('%s Volume' %(ticker))
+        plt.gcf().set_size_inches(12, 8) 
+        plt.subplots_adjust(hspace=0.75)
 
     def get_correlation(self, stocks, field='Adj Close', how='pct'):
         ''' get correlation matrix or best correlation list of 'get_best_of' '''
