@@ -68,6 +68,22 @@ class DataCache(object):
         plt.gcf().set_size_inches(12, 8) 
         plt.subplots_adjust(hspace=0.75)
 
+    def candle(self, ticker, field='Adj Close'):
+        import matplotlib.dates as mdates
+        from matplotlib.finance import candlestick_ohlc
+        from matplotlib.dates import DateFormatter
+        week_formatter = DateFormatter('%b %d')
+        from matplotlib.dates import WeekdayLocator, MONDAY
+        mondays = WeekdayLocator(MONDAY)
+        data = self.DataReader(ticker)
+        z = data[['Open', 'High', 'Low', 'Close']].reset_index()
+        fig, ax = plt.subplots()
+        ax.xaxis.set_major_locator(mondays)
+        ax.xaxis.set_major_formatter(week_formatter)
+        z['date_num']=z['Date'].apply(lambda date: mdates.date2num(date.to_pydatetime()))
+        subset = [tuple(x) for x in z[['date_num', 'Open', 'High', 'Low', 'Close']].values]
+        candlestick_ohlc(ax, subset, width=0.6, colorup='g', colordown='r')
+
     def get_correlation(self, stocks, field='Adj Close', how='pct'):
         ''' get correlation matrix or best correlation list of 'get_best_of' '''
         data = self.get_data(stocks, field, how)
