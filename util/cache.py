@@ -5,10 +5,15 @@ import pickle
 import pandas.io.data as pdata
 import pandas as pd
 import numpy as np
+
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+from matplotlib.finance import candlestick_ohlc
+from matplotlib.dates import DateFormatter
+from matplotlib.dates import WeekdayLocator, MONDAY
 
 class DataCache(object):
-
+    ''' mecanism to cache stock data if already downloaded '''
     datadir = os.path.dirname(os.path.realpath(__file__)) + '/../data'
 
     def __init__(self):
@@ -69,14 +74,10 @@ class DataCache(object):
         plt.subplots_adjust(hspace=0.75)
 
     def candle(self, ticker, field='Adj Close'):
-        import matplotlib.dates as mdates
-        from matplotlib.finance import candlestick_ohlc
-        from matplotlib.dates import DateFormatter
         week_formatter = DateFormatter('%b %d')
-        from matplotlib.dates import WeekdayLocator, MONDAY
         mondays = WeekdayLocator(MONDAY)
         data = self.DataReader(ticker)
-        z = data[['Open', 'High', 'Low', 'Close']].reset_index()
+        z = data.reset_index()
         fig, ax = plt.subplots()
         ax.xaxis.set_major_locator(mondays)
         ax.xaxis.set_major_formatter(week_formatter)
