@@ -8,16 +8,17 @@ class Fetch(object):
 	''' if params==all fetch all stocks get_all_categories'''
         filter = Filter()
         parser = Parse()
+        stocklist = []
         if params=='all':
             cats = filter.get_all_categories()
-            for cat in cats:
-                logging.info('fetching %s' % cat)    
+            for cat, desc in cats:
+                logging.info('fetching %s (%s)' %(cat, desc))    
                 params = [('sc', cat)]
-    	        stocks = self.fetch_stocks(params)
-            return cats
+    	        stocklist.extend(self.fetch_stocks(params))
+            return stocklist
         else:
             url = filter.build_query_string(params)
-	    stocklist = []
+            logging.info('url:%s' %url)
 	    stocklist = parser.parse(url, stocklist)
 	    return stocklist	
 	

@@ -50,7 +50,7 @@ class DataCache(object):
             
     def get_data(self, stocks,  field='Adj Close', how=None):
         ''' get field for each stock in a single dataframe '''
-	stocks = stock if isinstance(stocks, list) else [stocks]
+	stocks = stocks if isinstance(stocks, list) else [stocks]
         data = pd.DataFrame({stocks[0]:self.DataReader(stocks[0])[field]})
         data = data.fillna(method='ffill')
         for stock in stocks[1:]:
