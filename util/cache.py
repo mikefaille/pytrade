@@ -5,10 +5,15 @@ import pickle
 import pandas.io.data as pdata
 import pandas as pd
 import numpy as np
+
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+from matplotlib.finance import candlestick_ohlc
+from matplotlib.dates import DateFormatter
+from matplotlib.dates import WeekdayLocator, MONDAY
 
 class DataCache(object):
-
+    ''' mecanism to cache stock data if already downloaded '''
     datadir = os.path.dirname(os.path.realpath(__file__)) + '/../data'
 
     def __init__(self):
@@ -45,6 +50,7 @@ class DataCache(object):
             
     def get_data(self, stocks,  field='Adj Close', how=None):
         ''' get field for each stock in a single dataframe '''
+	stocks = stock if isinstance(stocks, list) else [stocks]
         data = pd.DataFrame({stocks[0]:self.DataReader(stocks[0])[field]})
         data = data.fillna(method='ffill')
         for stock in stocks[1:]:
@@ -54,6 +60,30 @@ class DataCache(object):
         elif how=='logdiff':
             data = np.log(data / data.shift(1)) 
         return data
+
+    def plot(self, ticker, field='Adj Close'):
+        data = self.DataReader(ticker)
+        top = plt.subplot2grid((4,4), (0,0), rowspan=3, colspan=4)
+        top.plot(data.index, data[field])
+        plt.title('%s %s' %(ticker, field))
+        plt.legend(loc=2)
+        buttom = plt.subplot2grid((4,4), (3,0), rowspan=3, colspan=4)
+        buttom.bar(data.index, data.Volume)
+        plt.title('%s Volume' %(ticker))
+        plt.gcf().set_size_inches(12, 8) 
+        plt.subplots_adjust(hspace=0.75)
+
+    def candle(self, ticker, field='Adj Close'):
+        week_formatter = DateFormatter('%b %d')
+        mondays = WeekdayLocator(MONDAY)
+        data = self.DataReader(ticker)
+        z = data.reset_index()
+        fig, ax = plt.subplots()
+        ax.xaxis.set_major_locator(mondays)
+        ax.xaxis.set_major_formatter(week_formatter)
+        z['date_num']=z['Date'].apply(lambda date: mdates.date2num(date.to_pydatetime()))
+        subset = [tuple(x) for x in z[['date_num', 'Open', 'High', 'Low', 'Close']].values]
+        candlestick_ohlc(ax, subset, width=0.6, colorup='g', colordown='r')
 
     def get_correlation(self, stocks, field='Adj Close', how='pct'):
         ''' get correlation matrix or best correlation list of 'get_best_of' '''
