@@ -5,12 +5,16 @@ import pickle
 import pandas.io.data as pdata
 import pandas as pd
 import numpy as np
+import scipy.stats as spstats
 
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from matplotlib.finance import candlestick_ohlc
 from matplotlib.dates import DateFormatter
 from matplotlib.dates import WeekdayLocator, MONDAY
+
+def calc_daily_returns(closes):
+    return np.log(closes/closes.shift(1))
 
 class DataCache(object):
     ''' mecanism to cache stock data if already downloaded '''
@@ -110,6 +114,14 @@ class DataCache(object):
             corr.plot(grid=True, style='b')
             data.plot()
         return corr
+
+    def var(self, ticker='TSLA', precision=0.01, n=100):
+        z = spstats.norm.ppf(1-precision)
+        data = self.DataReader(ticker)
+        returns = calc_daily_returns(data['Adj Close'])
+        position = n * data['Adj Close'][-1]
+        VaR = position * (z * returns.std())
+        print "VaR;",VaR," ","%.2f%%" %(VaR/position*100)
 
 data = DataCache()
 
