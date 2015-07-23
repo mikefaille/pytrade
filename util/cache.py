@@ -114,8 +114,12 @@ class DataCache(object):
 data = DataCache()
 
 if __name__ == "__main__":
-    print data.DataReader('TSLA')
-    stocks = ["TSLA", "GS", "SCTY", "AMZN", "CSCO",'FB',
-              'UTX','JCI',"GOOGL",'BP','MSFT', 'IBM','NUAN','YHOO']
-    print data.get_correlation(stocks)
-    print data.get_most_correlated('SCTY', stocks)
+    #stocks = ["D-UN.TO", "USO", "OIL", "DBO", "OLO", "OLEM"]
+    stocks = ["FAS","FAZ","MIDU","MIDZ","TNA","TZA","ERX","ERY","SPXL","SPXS","TECL","TECS","EDC","EDZ","DZK","DPK","DRN","DRV","MATL","BRZU","YINN","YANG","EURL","BAR","NUGT","DUST","CURE","INDL","JPNL","JNUG","JDST","LBJ","GASL","RETL","RUSL","RUSS","SOXL","SOXS","KORU","TYD","TYO","TMF","TMV","LBND","SBND","BUNT","JGBD","JGBT","TTT","UPRO","SPXU","FINU","FINZ","GDXX","GDXS","TQQQ","SQQQ","UDOW","SDOW","UMDD","SMDD","URTY","SRTY","UWTI","DWTI","UGLD","DGLD","UGAZ","DGAZ","USLV","DSLV"]
+    #print 'pct change'
+    #print data.get_correlation(stocks)
+    #print 'logdiff'
+    #print data.get_correlation(stocks, how='logdiff')
+    print 'rolling'
+    print data.get_rolling_corr('GLD', 'SPY', how='logdiff', plot=True)
+    plt.show()
