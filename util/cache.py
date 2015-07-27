@@ -5,12 +5,16 @@ import pickle
 import pandas.io.data as pdata
 import pandas as pd
 import numpy as np
+import scipy.stats as spstats
 
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from matplotlib.finance import candlestick_ohlc
 from matplotlib.dates import DateFormatter
 from matplotlib.dates import WeekdayLocator, MONDAY
+
+def calc_daily_returns(closes):
+    return np.log(closes/closes.shift(1))
 
 class DataCache(object):
     ''' mecanism to cache stock data if already downloaded '''
@@ -50,7 +54,7 @@ class DataCache(object):
             
     def get_data(self, stocks,  field='Adj Close', how=None):
         ''' get field for each stock in a single dataframe '''
-	stocks = stock if isinstance(stocks, list) else [stocks]
+	stocks = stocks if isinstance(stocks, list) else [stocks]
         data = pd.DataFrame({stocks[0]:self.DataReader(stocks[0])[field]})
         data = data.fillna(method='ffill')
         for stock in stocks[1:]:
@@ -111,11 +115,23 @@ class DataCache(object):
             data.plot()
         return corr
 
+    def var(self, ticker='TSLA', precision=0.01, n=100):
+        z = spstats.norm.ppf(1-precision)
+        data = self.DataReader(ticker)
+        returns = calc_daily_returns(data['Adj Close'])
+        position = n * data['Adj Close'][-1]
+        VaR = position * (z * returns.std())
+        print "VaR;",VaR," ","%.2f%%" %(VaR/position*100)
+
 data = DataCache()
 
 if __name__ == "__main__":
-    print data.DataReader('TSLA')
-    stocks = ["TSLA", "GS", "SCTY", "AMZN", "CSCO",'FB',
-              'UTX','JCI',"GOOGL",'BP','MSFT', 'IBM','NUAN','YHOO']
-    print data.get_correlation(stocks)
-    print data.get_most_correlated('SCTY', stocks)
+    #stocks = ["D-UN.TO", "USO", "OIL", "DBO", "OLO", "OLEM"]
+    stocks = ["FAS","FAZ","MIDU","MIDZ","TNA","TZA","ERX","ERY","SPXL","SPXS","TECL","TECS","EDC","EDZ","DZK","DPK","DRN","DRV","MATL","BRZU","YINN","YANG","EURL","BAR","NUGT","DUST","CURE","INDL","JPNL","JNUG","JDST","LBJ","GASL","RETL","RUSL","RUSS","SOXL","SOXS","KORU","TYD","TYO","TMF","TMV","LBND","SBND","BUNT","JGBD","JGBT","TTT","UPRO","SPXU","FINU","FINZ","GDXX","GDXS","TQQQ","SQQQ","UDOW","SDOW","UMDD","SMDD","URTY","SRTY","UWTI","DWTI","UGLD","DGLD","UGAZ","DGAZ","USLV","DSLV"]
+    #print 'pct change'
+    #print data.get_correlation(stocks)
+    #print 'logdiff'
+    #print data.get_correlation(stocks, how='logdiff')
+    print 'rolling'
+    print data.get_rolling_corr('GLD', 'SPY', how='logdiff', plot=True)
+    plt.show()

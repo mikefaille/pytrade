@@ -4,7 +4,7 @@ import urllib2
 
 class Parse(object):
 
-    def parse(self, url, stocklist):
+    def parse(self, url, stocklist, first_pass = True):
         templist = []
         
         delimiter = '&d=t">'
@@ -40,12 +40,14 @@ class Parse(object):
             count += 1 
             
         splits = output.split(delimiter3)
-        url = url + '&b=1'
+        if first_pass:
+            url = url + '&b=1'
         if len(splits) > 1:
+            print url
             urlsplits = url.split('=')
             urlsplits[-1] = str(int(urlsplits[-1]) + 20)
             url = '='.join(urlsplits)
-            self.parse(url, stocklist)
+            self.parse(url, stocklist, False)
 	    return stocklist
         else:
             return stocklist

@@ -8,21 +8,29 @@ class Fetch(object):
 	''' if params==all fetch all stocks get_all_categories'''
         filter = Filter()
         parser = Parse()
+        stocklist = []
         if params=='all':
             cats = filter.get_all_categories()
-            stocklist = []
             for cat in cats:
-                logging.info('fetching %s' % cat)    
                 params = [('sc', cat)]
-    	        stocks = self.fetch_stocks(params)
-                for stock in stocks:
-		    stocklist.append(stock)
-	    print stocklist
-	    exit()
-            return cats
+                try:
+                    stocklist.extend(self.fetch_stocks(params))
+                except Exception, e:
+                    print cat 
+                    print e
+                    #print stocklist
+                    print 'exited prematurely'
+                    exit()
         else:
             url = filter.build_query_string(params)
-	    stocklist = []
+            logging.info('url:%s' %url)
+            print url
 	    stocklist = parser.parse(url, stocklist)
-	    return stocklist	
+
+        return stocklist	
 	
+if __name__ == "__main__":
+    fetch = Fetch()
+    #params = [('sc', 812)]
+    params = 'all'
+    result = fetch.fetch_stocks(params)
