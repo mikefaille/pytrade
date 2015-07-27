@@ -10,43 +10,6 @@ import matplotlib.mlab as mlab
 # plotting
 import matplotlib.pyplot as plt
 
-
-class Portfolio:
-    ''' simple portfolio class '''
-    
-    def __init__(self, tickers, weights=None, start=None):
-        self.start = date.today() if start==None else start
-        if weights is None: 
-            shares = np.ones(len(tickers))/len(tickers)
-        self.data = pd.DataFrame({'Tickers': tickers, 
-                                  'Weights': weights}, 
-                                  index=tickers)
-
-    def get_returns(self):
-        from cache import data
-        returns = {}
-        for ticker in self.data['Tickers']:
-            print "getting ", ticker
-            returns[ticker] = data.DataReader(ticker,'yahoo', start=self.start)['Adj Close'].diff().fillna(0)
-        return returns
-
-    def __str__(self):
-        print self.data
-    
-    def calculate_weighted_portfolio_value(self, start_date=None, name='Value'):
-        total_weights = self.data.Weights.sum()
-        returns = self.get_returns()
-        weighted_returns = returns * (self.data.Weights / 
-                                      total_weights)
-        return pd.DataFrame({name: weighted_returns.sum(axis=1)})
-
-def plot_portfolio_returns(returns, title=None):
-    returns.plot(figsize=(12,8))
-    plt.xlabel('Year')
-    plt.ylabel('Returns')
-    if title is not None: plt.title(title)
-    plt.show()
-
 def calc_daily_returns(closes):
     return np.log(closes/closes.shift(1))
 
@@ -55,13 +18,66 @@ def calc_annual_returns(daily_returns):
         lambda date: date.year).sum())-1
     return grouped
 
-def calc_portfolio_var(returns, weights=None):
-    if weights is None: 
-        weights = np.ones(returns.columns.size) / \
-        returns.columns.size
-    sigma = np.cov(returns.T,ddof=0)
-    var = (weights * sigma * weights.T).sum()
-    return var
+class Portfolio:
+    ''' simple portfolio class '''
+    
+    def __init__(self, tickers, weights=None, start=None):
+        self.start = date.today() if start==None else start
+        weights = np.array(weights) if weights is not None else np.ones(len(tickers))/len(tickers)
+        self.tickers = tickers
+        self.weights = weights
+        self.data = pd.DataFrame({'Tickers': tickers, 
+                                  'Weights': weights}, 
+                                 index=tickers)
+        self._returns = None
+
+
+    def get_annual_returns(self):
+        self.returns
+        daily_returns = calc_daily_returns(self.closes)
+        return calc_annual_returns(daily_returns)
+    
+    @property
+    def returns(self):
+        if self._returns is None:
+            from cache import data
+            returns = {}
+            closes = {}
+            for ticker in self.data['Tickers']:
+                print "getting ", ticker
+                close = data.DataReader(ticker,'yahoo', start=self.start)['Adj Close']
+                returns[ticker]=close/close.shift(1)
+                closes[ticker]=close
+                #returns[ticker] = data.DataReader(ticker,'yahoo', start=self.start)['Adj Close'].diff().fillna(0)
+            self._returns = pd.DataFrame(returns)
+            self.closes = pd.DataFrame(closes)
+        return self._returns
+
+    def plot_returns(self, title=None):
+        returns = self.get_weighted_returns() 
+        returns.plot(figsize=(12,8))
+        plt.xlabel('Year')
+        plt.ylabel('Returns')
+        if title is not None: plt.title(title)
+        plt.show()
+    
+    def __str__(self):
+        print self.data
+    
+    def get_weighted_returns(self):
+        total_weights = self.data.Weights.sum()
+        weighted_returns = self.returns * (self.data.Weights / 
+                                      total_weights)
+        wr = pd.DataFrame({'Value': weighted_returns.sum(axis=1)})
+        with_value = pd.concat([self.returns, wr], axis=1)
+        return with_value
+
+
+    def calc_var(self):
+        returns = self.returns
+        sigma = np.cov(returns.T,ddof=0)
+        var = (weights * sigma * self.weights.T).sum()
+        return var
 
 def sharpe_ratio(returns, weights = None, risk_free_rate = 0.015):
     n = returns.columns.size
@@ -140,11 +156,10 @@ def calc_efficient_frontier(returns):
 if __name__ == "__main__":
     from cache import data
     tickers = ['BABA','DBA','TSLA','TWTR']
-    weights = np.array([44,2.1,26,17])  
+    weights = np.array([46,2.3,25.6,17.5])
+    investment_date = '2014-12-01'
     weights /= weights.sum()
-    #closes = data.get_historical_closes(tickers)
-    #daily_returns = calc_daily_returns(closes)
-    #annual_returns = calc_annual_returns(daily_returns)
-
-    portfolio = Portfolio(tickers, weights)
-    portfolio.calculate_weighted_portfolio_value(portfolio)
+    portfolio = Portfolio(tickers, weights, investment_date)
+    portfolio.plot_returns()
+    print portfolio.get_annual_returns()
+    print portfolio.calc_var()
