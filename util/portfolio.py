@@ -2,7 +2,7 @@
 import pandas as pd
 import numpy as np
 import pandas.io.data as web
-from datetime import datetime
+from datetime import datetime, date
 import scipy as sp
 import scipy.optimize as scopt
 import scipy.stats as spstats
@@ -11,21 +11,41 @@ import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
 
 
-def create_portfolio(tickers, weights=None):
-    if weights is None: 
-        shares = np.ones(len(tickers))/len(tickers)
-    portfolio = pd.DataFrame({'Tickers': tickers, 
-                              'Weights': weights}, 
-                             index=tickers)
-    return portfolio
+class Portfolio:
+    ''' simple portfolio class '''
+    
+    def __init__(self, tickers, weights=None, start=None):
+        self.start = date.today() if start==None else start
+        if weights is None: 
+            shares = np.ones(len(tickers))/len(tickers)
+        self.data = pd.DataFrame({'Tickers': tickers, 
+                                  'Weights': weights}, 
+                                  index=tickers)
 
-def calculate_weighted_portfolio_value(portfolio, 
-                                       returns, 
-                                       name='Value'):
-    total_weights = portfolio.Weights.sum()
-    weighted_returns = returns * (portfolio.Weights / 
-                                  total_weights)
-    return pd.DataFrame({name: weighted_returns.sum(axis=1)})
+    def get_returns(self):
+        from cache import data
+        returns = {}
+        for ticker in self.data['Tickers']:
+            print "getting ", ticker
+            returns[ticker] = data.DataReader(ticker,'yahoo', start=self.start)['Adj Close'].diff().fillna(0)
+        return returns
+
+    def __str__(self):
+        print self.data
+    
+    def calculate_weighted_portfolio_value(self, start_date=None, name='Value'):
+        total_weights = self.data.Weights.sum()
+        returns = self.get_returns()
+        weighted_returns = returns * (self.data.Weights / 
+                                      total_weights)
+        return pd.DataFrame({name: weighted_returns.sum(axis=1)})
+
+def plot_portfolio_returns(returns, title=None):
+    returns.plot(figsize=(12,8))
+    plt.xlabel('Year')
+    plt.ylabel('Returns')
+    if title is not None: plt.title(title)
+    plt.show()
 
 def calc_daily_returns(closes):
     return np.log(closes/closes.shift(1))
@@ -115,3 +135,16 @@ def calc_efficient_frontier(returns):
     return {'Means': result_means, 
             'Stds': result_stds, 
             'Weights': result_weights}
+
+
+if __name__ == "__main__":
+    from cache import data
+    tickers = ['BABA','DBA','TSLA','TWTR']
+    weights = np.array([44,2.1,26,17])  
+    weights /= weights.sum()
+    #closes = data.get_historical_closes(tickers)
+    #daily_returns = calc_daily_returns(closes)
+    #annual_returns = calc_annual_returns(daily_returns)
+
+    portfolio = Portfolio(tickers, weights)
+    portfolio.calculate_weighted_portfolio_value(portfolio)

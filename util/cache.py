@@ -6,15 +6,14 @@ import pandas.io.data as pdata
 import pandas as pd
 import numpy as np
 import scipy.stats as spstats
+import scipy.optimize as scopt
 
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from matplotlib.finance import candlestick_ohlc
 from matplotlib.dates import DateFormatter
 from matplotlib.dates import WeekdayLocator, MONDAY
-
-def calc_daily_returns(closes):
-    return np.log(closes/closes.shift(1))
+import portfolio as pf
 
 class DataCache(object):
     ''' mecanism to cache stock data if already downloaded '''
@@ -44,6 +43,22 @@ class DataCache(object):
             pickle.dump(data, open(datafilepath,"wb"))
 	    logging.info('Retreiving ' + name + ' from internet and stored')
             return get_date_range(start, end)
+
+    def get_historical_closes(self, ticker, start_date=None, end_date=None):
+        # get the data for the tickers.  This will be a panel
+        p = self.DataReader(ticker, "yahoo", start=None, end=None)    
+        # convert the panel to a DataFrame and selection only Adj Close
+        # while making all index levels columns
+        d = p.to_frame()['Adj Close'].reset_index()
+        # rename the columns
+        d.rename(columns={'minor': 'Ticker', 
+                          'Adj Close': 'Close'}, inplace=True)
+        # pivot each ticker to a column
+        pivoted = d.pivot(index='Date', columns='Ticker')
+        # and drop the one level on the columns
+        pivoted.columns = pivoted.columns.droplevel(0)
+        return pivoted
+
 
     def get_most_correlated(self, x, stocks=None, field='Adj Close', how='pct'):
         stocks = stocks if stocks else self.cache.keys()
@@ -115,10 +130,12 @@ class DataCache(object):
             data.plot()
         return corr
 
-    def var(self, ticker='TSLA', precision=0.01, n=100):
+    def VaR(self, ticker='TSLA', precision=0.01, n=100, plot=False):
         z = spstats.norm.ppf(1-precision)
         data = self.DataReader(ticker)
-        returns = calc_daily_returns(data['Adj Close'])
+        returns = pf.calc_daily_returns(data['Adj Close'])
+        if plot:
+            plt.hist(returns.values[1:], bins=100)
         position = n * data['Adj Close'][-1]
         VaR = position * (z * returns.std())
         print "VaR;",VaR," ","%.2f%%" %(VaR/position*100)
