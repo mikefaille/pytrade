@@ -3,7 +3,7 @@ import urllib
 class Filter(object):
    
     def get_all_categories(self):
-	return self.filter_dict.keys()
+	return self.filter_dict['sc'].keys()
 
     # Endpoint
     def __init__(self):

@@ -10,10 +10,15 @@ class Fetch(object):
         parser = Parse()
         if params=='all':
             cats = filter.get_all_categories()
+            stocklist = []
             for cat in cats:
                 logging.info('fetching %s' % cat)    
                 params = [('sc', cat)]
     	        stocks = self.fetch_stocks(params)
+                for stock in stocks:
+		    stocklist.append(stock)
+	    print stocklist
+	    exit()
             return cats
         else:
             url = filter.build_query_string(params)
