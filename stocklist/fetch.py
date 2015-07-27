@@ -11,14 +11,26 @@ class Fetch(object):
         stocklist = []
         if params=='all':
             cats = filter.get_all_categories()
-            for cat, desc in cats:
-                logging.info('fetching %s (%s)' %(cat, desc))    
+            for cat in cats:
                 params = [('sc', cat)]
-    	        stocklist.extend(self.fetch_stocks(params))
-            return stocklist
+                try:
+                    stocklist.extend(self.fetch_stocks(params))
+                except Exception, e:
+                    print cat 
+                    print e
+                    #print stocklist
+                    print 'exited prematurely'
+                    exit()
         else:
             url = filter.build_query_string(params)
             logging.info('url:%s' %url)
+            print url
 	    stocklist = parser.parse(url, stocklist)
-	    return stocklist	
+
+        return stocklist	
 	
+if __name__ == "__main__":
+    fetch = Fetch()
+    #params = [('sc', 812)]
+    params = 'all'
+    result = fetch.fetch_stocks(params)
