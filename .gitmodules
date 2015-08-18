@@ -8,3 +8,6 @@
 [submodule "theanets"]
 	path = theanets
 	url = https://github.com/lmjohns3/theanets.git
+[submodule "dx"]
+	path = dx
+	url = https://github.com/yhilpisch/dx.git
