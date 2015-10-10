@@ -8,7 +8,7 @@ import pandas as pd
 import argparse
 import logging
 from datetime import date, timedelta
-
+import matplotlib.pyplot as plt
 from dx import *
 
 def visualize(port, n_stock, n=500):
@@ -25,13 +25,15 @@ def visualize(port, n_stock, n=500):
 
     rets = np.array(rets)
     vols = np.array(vols)
-    import matplotlib.pyplot as plt
-
+    
     plt.scatter(vols, rets, c=rets / vols, marker='o')
+    evols, erets = port.get_efficient_frontier(100)
+    plt.scatter(evols, erets, c=erets / evols, marker='x')
     plt.grid(True)
     plt.xlabel('expected volatility')
     plt.ylabel('expected return')
     plt.colorbar(label='Sharpe ratio')
+    plt.show()
 
 
 parser = argparse.ArgumentParser(description=__doc__)

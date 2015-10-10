@@ -21,6 +21,8 @@ class DataCache(object):
 
     def __init__(self):
         self.cache = {}
+        if not os.path.exists(self.datadir):
+            os.makedirs(self.datadir)
 
     def DataReader(self, name, data_source="yahoo", start=None, end=None):
         name = name.lower()
