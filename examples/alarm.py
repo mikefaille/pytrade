@@ -48,8 +48,8 @@ else:
 
 for stock in stocks:
     print stock
-    data.DataReader(stock, 'google')
-    
+    previous = data.DataReader(stock, 'google', lastn=args.window)
+    std = previous.pct_change()[1:].std()
     
 
 

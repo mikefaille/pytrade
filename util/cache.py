@@ -2,6 +2,7 @@
 import os
 import logging
 import pickle
+from datetime import timedelta, date
 import pandas.io.data as pdata
 import pandas as pd
 import numpy as np
@@ -24,7 +25,11 @@ class DataCache(object):
         if not os.path.exists(self.datadir):
             os.makedirs(self.datadir)
 
-    def DataReader(self, name, data_source="yahoo", start=None, end=None):
+    def DataReader(self, name, data_source="yahoo", start=None, end=None, lastn=None):
+        ''' main access point '''
+        if lastn:
+             end = date.today()-timedelta(days=1)
+             start = end-timedelta(days=lastn)
         name = name.lower()
         datafilepath = self.datadir + '/' + name + '.p'
         def get_date_range(start, end):
