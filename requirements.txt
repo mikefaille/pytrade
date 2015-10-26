@@ -28,7 +28,4 @@ mibian-0.1.2
 
 https://github.com/mila-udem/blocks.git
 https://github.com/mila-udem/fuel.git
-https://github.com/mila-udem/fuel.git
-https://github.com/mila-udem/blocks-extras.git
-https://github.com/mila-udem/blocks-extras.git
 https://github.com/mila-udem/blocks-extras.git
