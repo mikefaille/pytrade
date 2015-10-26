@@ -1,19 +1,20 @@
  #!/usr/bin/python
 ''' run does 3 things:
  #1) eval a strategy on a stock -> ./run.py -s TSLA (default) 
- #2) find best stock:  ./run.py --stock TSLA,GS,SCTY,AMZN,TWTR 
-                       ./run.py --cat 431 --fetch_limit 5 
- #3) by or sale today: ./run.py --stock TSLA,GS,SCTY,AMZN,TWTR --now 
- #4) download data   : ./run.py --download
+ #2) find best stock:   ./run.py --stock TSLA,GS,SCTY,AMZN,TWTR 
+                        ./run.py --cat 431 --fetch_limit 5 
+ #3) buy or sale today: ./run.py --stock TSLA,GS,SCTY,AMZN,TWTR --now 
+ #4) download data    : ./run.py --download
 find the best stock from choices on which you should apply the strategy 
     base on historic data 
+# 5) generate best, train, try 
+python run.py -s TSLA --best --save --charts --details --months 36 
+python run.py --save --pnl
+python run.py --train
+python run.py --load TSLA --details 
 
+other: 
 python  examples/run.py --month 12 -s TSLA --charts --details --fees 0 --momentum none:none --shares --min_trade 10 --best  --ts --init_shares 10
-
-python  run.py --month 12 -s GS --charts --details --init_shares 0  --fees 0 --momentum log:exp --shares --min_trade 100 --best --ts
-python run.py --month 1 -s TSLA --charts --details --init_shares 0 --verbose --ts --fees 0 --momentum none:none --best --shares --min_trade 10
-2015-05-2015-05-27  12996.9 -10     -2485.1   0     0     248.51  10511.8  511.827  12996.9 -10     -2485.1   0     0     248.51  10511.8  511.8
-
 '''
 from util import evaluate 
 reload(evaluate)
