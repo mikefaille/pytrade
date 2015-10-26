@@ -9,13 +9,14 @@ find the best stock from choices on which you should apply the strategy
     base on historic data 
 # 5) generate best, train, try 
 python run.py -s TSLA --best --save --charts --details --months 36 
-python run.py --save --pnl
-python run.py --train
-python run.py --load TSLA --details 
+python run.py -s TSLA --save --pnl
+python run.py -s TSLA --train
+python run.py -S GS --load TSLA --details 
 
 other: 
 python  examples/run.py --month 12 -s TSLA --charts --details --fees 0 --momentum none:none --shares --min_trade 10 --best  --ts --init_shares 10
 '''
+import sys
 from util import evaluate 
 reload(evaluate)
 import pandas as pd
@@ -58,97 +59,101 @@ parser.add_argument('--pnl', action="store_true", help='show PnL (profit and los
 parser.add_argument('--field', default='Open', help='price field = Open, High, Low, Close, Adj Close')
 parser.add_argument('--ib', action="store_true", help='send order on ib')
 parser.add_argument('--download', action="store_true", help='download all stock categories')
-args = parser.parse_args()
 
-if args.best:
-    args.strategy='opt_trend'
+def main(args=None):
+    args = args.split(' ') or sys.argv[1:]
+    args = parser.parse_args(args)
 
-if args.logging_info:
-    logging.basicConfig(level=logging.INFO)
+    if args.best:
+        args.strategy='opt_trend'
 
-if args.ref:
-    print "activating ref ideal case"
-    args.stocks="TSLA"
-    args.months=12
-    args.charts=True
-    args.details=True
-    args.init_shares=0
-    args.ts=True
-    args.fees=0
-    args.momentum="none:none"
-    args.shares=True
-    args.min_trade=10
-    args.best=True
+    if args.logging_info:
+        logging.basicConfig(level=logging.INFO)
 
-if args.best:
-    args.strategy="opt_trend"
+    if args.ref:
+        print "activating ref ideal case"
+        args.stocks="TSLA"
+        args.months=12
+        args.charts=True
+        args.details=True
+        args.init_shares=0
+        args.ts=True
+        args.fees=0
+        args.momentum="none:none"
+        args.shares=True
+        args.min_trade=10
+        args.best=True
+        
+    if args.best:
+        args.strategy="opt_trend"
 
-eval = evaluate.Eval(field=args.field, months=args.months, 
-                     init_cash=args.init_cash, init_shares=args.init_shares,
-                     min_trade=args.min_trade,trans_fees=args.fees,
-                     min_cash=args.min_cash, min_shares=args.min_shares, 
-                     strategy=args.strategy, details=args.details,
-                     worst=args.worst, min_trade_shares=args.shares,
-                     trade_equal_shares=args.ts,
-                     save=args.save,
-                     verbose=args.verbose, debug=args.debug)
+    eval = evaluate.Eval(field=args.field, months=args.months, 
+                         init_cash=args.init_cash, init_shares=args.init_shares,
+                         min_trade=args.min_trade,trans_fees=args.fees,
+                         min_cash=args.min_cash, min_shares=args.min_shares, 
+                         strategy=args.strategy, details=args.details,
+                         worst=args.worst, min_trade_shares=args.shares,
+                         trade_equal_shares=args.ts,
+                         save=args.save,
+                         verbose=args.verbose, debug=args.debug)
 
-eval.set_momentums(args.momentums)
+    eval.set_momentums(args.momentums)
       
-if args.load:
-    exp = load_strategy(args.load)
-    eval.strategy.predict = exp.network.predict
-
-from stocklist.fetch import Fetch
-fetch = Fetch()
-
-if args.download:
-    stocks = fetch.fetch_stocks('all')
-elif args.cat!=None:
-    print "category", args.cat
+    if args.load:
+        exp = load_strategy(args.load)
+        eval.strategy.predict = exp.network.predict
     
-    #params is a list of tuples. More info on params can be found in stocklist/filters.py
-    params = [('sc', args.cat)]
-    stocks = fetch.fetch_stocks(params)
-    if args.fetch_limit!=None:
-        stocks=stocks[:args.fetch_limit]
-elif args.test:
-    stocks = ["TSLA", "GS", "SCTY", "AMZN", "CSCO",'FB',
-              'UTX','JCI',"GOOGL",'BP','MSFT', 'IBM','NUAN','YHOO']
-    # add oil stock
-    stocks.extend(["SU", 'TA', 'BP', 'XOM'])
-else:
-    stocks = args.stocks.split(',')
-
-# should you trade it now?
-if args.now:
-    for stock in stocks:
-        order = eval.strategy.apply(stock)
-        print stock,"->", order
-        if args.ib:
-            from ibutil import IB
-            ib=IB()
-            ib.create_order(stock)
-
-# evaluate strategy on different stocks 
-elif len(stocks)>1:
-    eval.min_trade_shares=False
-    eval.eval_best(stocks, charts=args.charts)
-else: # evalue strategy 
-    if args.train:
-        eval.save=True;eval.set_strategy('opt_trend')
-        print "generating optimal orders"
-        eval.run(stocks[0], charts=False)
-        print "generating features"
-        eval.save=True;eval.set_strategy('opt_trend')
-        eval.run(stocks[0], charts=False)
-        print "training"
-        train_strategy(stocks[0])
+    from stocklist.fetch import Fetch
+    fetch = Fetch()
+    
+    if args.download:
+        stocks = fetch.fetch_stocks('all')
+    elif args.cat!=None:
+        print "category", args.cat
+        #params is a list of tuples. More info on params can be found in stocklist/filters.py
+        params = [('sc', args.cat)]
+        stocks = fetch.fetch_stocks(params)
+        if args.fetch_limit!=None:
+            stocks=stocks[:args.fetch_limit]
+    elif args.test:
+        stocks = ["TSLA", "GS", "SCTY", "AMZN", "CSCO",'FB',
+                  'UTX','JCI',"GOOGL",'BP','MSFT', 'IBM','NUAN','YHOO']
+            # add oil stock
+        stocks.extend(["SU", 'TA', 'BP', 'XOM'])
     else:
-        eval.run(stocks[0], charts=args.charts)
-    if args.pnl or args.details:
-        eval.plot_field('pnl')
-    print eval
-    
+        stocks = args.stocks.split(',')
+
+    # should you trade it now?
+    if args.now:
+        for stock in stocks:
+            order = eval.strategy.apply(stock)
+            print stock,"->", order
+            if args.ib:
+                from ibutil import IB
+                ib=IB()
+                ib.create_order(stock)
+
+    # evaluate strategy on different stocks 
+    elif len(stocks)>1:
+        eval.min_trade_shares=False
+        eval.eval_best(stocks, charts=args.charts)
+    else: # evalue strategy 
+        if args.train:
+            eval.save=True;eval.set_strategy('opt_trend')
+            print "generating optimal orders"
+            eval.run(stocks[0], charts=False)
+            print "generating features"
+            eval.save=True;eval.set_strategy('opt_trend')
+            eval.run(stocks[0], charts=False)
+            print "training"
+            train_strategy(stocks[0])
+        else:
+            eval.run(stocks[0], charts=args.charts)
+        if args.pnl or args.details:
+            eval.plot_field('pnl')
+        print eval
+
+if __name__ == "__main__":
+    main()
     
   
