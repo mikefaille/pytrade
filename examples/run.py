@@ -61,7 +61,7 @@ parser.add_argument('--ib', action="store_true", help='send order on ib')
 parser.add_argument('--download', action="store_true", help='download all stock categories')
 
 def main(args=None):
-    args = args.split(' ') or sys.argv[1:]
+    args = args.split(' ') if args else sys.argv[1:]
     args = parser.parse_args(args)
 
     if args.best:
