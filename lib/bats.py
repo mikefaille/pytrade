@@ -52,11 +52,11 @@ class BATS_Data(object):
 
     def _missingDates(self):
         ''' check for missing dates based on spy data'''
-        print 'Getting yahoo data to determine business dates... ',
+        print('Getting yahoo data to determine business dates... ')
         spy = yf.getHistoricData('SPY',sDate = (2010,1,1))
         busDates = [d.date() for d in spy.index ]
 
-        print 'Date range: ', busDates[0] ,'-', busDates[-1]
+        print('Date range: ', busDates[0] ,'-', busDates[-1])
         missing = []
         for d in busDates:
             if d not in self.dates:
@@ -66,7 +66,7 @@ class BATS_Data(object):
 
     def updateDb(self):
 
-        print 'Updating database'
+        print('Updating database')
         missing = self._missingDates()
 
         for i, date in enumerate(missing):
@@ -74,11 +74,11 @@ class BATS_Data(object):
 
             dest = os.path.join(self.dataDir,date2fileName(date))
             if not os.path.exists(dest):
-                print 'Downloading [%i/%i]' %(i,len(missing)), source
+                print('Downloading [%i/%i]' %(i,len(missing)), source)
                 urllib.urlretrieve(source, dest)
             else:
-                print 'x',
-        print 'Update done.'
+                print('x')
+        print('Update done.')
         self._checkDates()
 
     def loadDate(self,date):

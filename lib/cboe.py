@@ -55,7 +55,7 @@ def getPutCallRatio():
         lines = urllib2.urlopen(urlStr).readlines()
     except Exception, e:
         s = "Failed to download:\n{0}".format(e);
-        print s
+        print(s)
        
     headerLine = 2
     
@@ -95,7 +95,7 @@ def getHistoricData(symbols =  ['VIX','VXV','VXMT','VVIX']):
   
     for symbol in symbols:
         urlStr = urls[symbol]
-        print 'Downloading %s from %s' % (symbol,urlStr)
+        print(('Downloading %s from %s' % (symbol,urlStr)))
         
         data[symbol] = pd.read_csv(urllib2.urlopen(urlStr), header=startLines[symbol],index_col=0,parse_dates=True)[cols[symbol]]
     
@@ -139,7 +139,7 @@ def testDownload():
 def testExpiration():
     for month in xrange(1,13):
         d = vixExpiration(2011,month)
-        print d.strftime("%B, %d %Y (%A)")    
+        print((d.strftime("%B, %d %Y (%A)")))    
 
 
 
@@ -147,8 +147,8 @@ if __name__ == '__main__':
     
     #testExpiration()
     v = VixFuture(2011,11)
-    print v
+    print(v)
     
-    print v.daysLeft(datetime(2011,11,10))
+    print((v.daysLeft(datetime(2011,11,10))))
         
     

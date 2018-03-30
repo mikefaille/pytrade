@@ -55,11 +55,11 @@ class ExampleListener(object):
         self.name = name
     
     def method(self,sender,event,msg=None):
-        print "[{0}] got event {1} with message {2}".format(self.name,event,msg)
+        print(("[{0}] got event {1} with message {2}".format(self.name,event,msg)))
                    
 
 if __name__=="__main__":
-    print 'demonstrating event system'
+    print('demonstrating event system')
     
     
     alice = Sender()
@@ -78,7 +78,7 @@ if __name__=="__main__":
     alice.dispatch(event='event2',msg=[1,2,3])
     alice.dispatch(msg='attention to all')
     
-    print 'Done.'
+    print('Done.')
     
     
     

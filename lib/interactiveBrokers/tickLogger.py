@@ -53,7 +53,7 @@ class TickLogger(object):
         
         # open data file for writing
         fileName = 'tickLogs\\tickLog_%s.csv' % dt.datetime.now().strftime('%H_%M_%S')
-        print 'Logging ticks to ' , fileName
+        print(('Logging ticks to ' , fileName))
         self.dataFile = open(fileName,'w')        
     
  
@@ -79,13 +79,13 @@ class TickLogger(object):
      
     def close(self):
         '''close file in a neat manner '''
-        print 'Closing data file'
+        print('Closing data file')
         self.dataFile.close()
 
 
 def printMessage(msg):
     ''' function to print all incoming messages from TWS '''
-    print '[msg]:', msg
+    print(('[msg]:', msg))
 
 
 
@@ -123,7 +123,7 @@ def logTicks(contracts,verbose=False):
         tws.reqMktData(subId,c,"",False)
 
     #------start a loop that must be interrupted with Ctrl-C
-    print 'Press Ctr-C to stop loop'
+    print('Press Ctr-C to stop loop')
 
     try:
         while True:
@@ -133,11 +133,11 @@ def logTicks(contracts,verbose=False):
                 
                 
     except KeyboardInterrupt:
-        print 'Interrupted with Ctrl-c'    
+        print('Interrupted with Ctrl-c')    
     
     logger.close()             
     tws.disconnect()
-    print 'All done'    
+    print('All done')    
 
 #--------------main script------------------
 
@@ -154,7 +154,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     symbols = args.symbols.strip().split(',')
-    print 'Logging ticks for:',symbols
+    print(('Logging ticks for:',symbols))
     
     contracts = [createContract(symbol) for symbol in symbols]
     

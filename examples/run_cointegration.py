@@ -26,7 +26,7 @@ x_1t = np.cumsum(s1)+s2
 x_2t = a*np.cumsum(s1)+s3
 x_3t = s3
 todays_date = datetime.datetime.now().date()
-print todays_date
+print(todays_date)
 index = pd.date_range(todays_date-datetime.timedelta(10), periods=n, freq='D')
 y = pd.DataFrame(index=index, data={'col1': x_1t, 'col2': x_2t, 'col3':x_3t} )
 y.plot()

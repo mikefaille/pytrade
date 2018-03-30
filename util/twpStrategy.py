@@ -7,13 +7,13 @@ class twpStrategy(Strategy):
     @classmethod
     def visu(cls, stockname, save=False):
         from pylab import title, figure, savefig, subplot, show
-        print "#1) Automatic buy/sales visualisation of the current strategy (buy=long, short=sale)"
+        print("#1) Automatic buy/sales visualisation of the current strategy (buy=long, short=sale)")
         if save:
             subplot(211)
         else:
             figure()
         cls.backtest.plotTrades(stockname)
-        print "#2) Evaluation of the strategy (PnL (Profit & Log) = Value today - Value yesterday)"
+        print("#2) Evaluation of the strategy (PnL (Profit & Log) = Value today - Value yesterday)")
         if save:
             subplot(212)
         else:
@@ -23,7 +23,7 @@ class twpStrategy(Strategy):
         if save:
             savefig('eval.png')
         
-        print "#3) big picture: Price, shares, value, cash & PnL"
+        print("#3) big picture: Price, shares, value, cash & PnL")
         cls.backtest.data.plot()
         title('all strategy data %s' %stockname)
         if save:

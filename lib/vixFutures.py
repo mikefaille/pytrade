@@ -25,7 +25,7 @@ def getCboeData(year,month):
         lines = urllib2.urlopen(urlStr).readlines()
     except Exception, e:
         s = "Failed to download:\n{0}".format(e);
-        print s
+        print(s)
         
     # first column is date, second is future , skip these
     header = lines[0].strip().split(',')[2:]
@@ -123,7 +123,7 @@ class Future(object):
 
 
 if __name__ == '__main__':
-    print 'testing vix futures'
+    print('testing vix futures')
     
     year = 2012
     month = 12
@@ -131,6 +131,6 @@ if __name__ == '__main__':
     
     f = Future(year,month)
     f.getCboeData()
-    print f
+    print(f)
     
     

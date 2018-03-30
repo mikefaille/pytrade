@@ -29,7 +29,7 @@ def calc_firstdigit(dataset):
 
 def plot_comparative(aset, bset, dataset_label):
    if not HAVE_MATPLOTLIB:
-      print "No Matplotlib installed !"
+      print("No Matplotlib installed !")
       return False
 
    xaxis = pylab.arange(1, 10)

@@ -59,7 +59,7 @@ else:
 total = sum([float(el) for el in weights.values()])
 for ticker in weights:
     weights[ticker]=float(weights[ticker])/total
-print weights
+print(weights)
     
 # create marker_environment    
 ma = market_environment('ma', args.start)
@@ -73,9 +73,9 @@ port.set_weights(weights.values())
 
 
 def eval_port(name):
-    print "evaluation %s" %name 
-    print port
-    print "return = ",port.get_portfolio_return()
+    print("evaluation %s" %name) 
+    print(port)
+    print("return = ",port.get_portfolio_return())
 
 eval_port("default distribution")
 for opt in ["Return", 'Vol', 'Sharpe']:

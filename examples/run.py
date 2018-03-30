@@ -71,7 +71,7 @@ def main(args=None):
         logging.basicConfig(level=logging.INFO)
 
     if args.ref:
-        print "activating ref ideal case"
+        print("activating ref ideal case")
         args.stocks="TSLA"
         args.months=12
         args.charts=True
@@ -109,7 +109,7 @@ def main(args=None):
     if args.download:
         stocks = fetch.fetch_stocks('all')
     elif args.cat!=None:
-        print "category", args.cat
+        print("category", args.cat)
         #params is a list of tuples. More info on params can be found in stocklist/filters.py
         params = [('sc', args.cat)]
         stocks = fetch.fetch_stocks(params)
@@ -127,7 +127,7 @@ def main(args=None):
     if args.now:
         for stock in stocks:
             order = eval.strategy.apply(stock)
-            print stock,"->", order
+            print(stock,"->", order)
             if args.ib:
                 from ibutil import IB
                 ib=IB()
@@ -140,18 +140,18 @@ def main(args=None):
     else: # evalue strategy 
         if args.train:
             eval.save=True;eval.set_strategy('opt_trend')
-            print "generating optimal orders"
+            print("generating optimal orders")
             eval.run(stocks[0], charts=False)
-            print "generating features"
+            print("generating features")
             eval.save=True;eval.set_strategy('opt_trend')
             eval.run(stocks[0], charts=False)
-            print "training"
+            print("training")
             train_strategy(stocks[0])
         else:
             eval.run(stocks[0], charts=args.charts)
         if args.pnl or args.details:
             eval.plot_field('pnl')
-        print eval
+        print(eval)
 
 if __name__ == "__main__":
     main()

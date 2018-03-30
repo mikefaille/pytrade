@@ -145,7 +145,7 @@ class DataCache(object):
             plt.hist(returns.values[1:], bins=100)
         position = n * data['Adj Close'][-1]
         VaR = position * (z * returns.std())
-        print "VaR;",VaR," ","%.2f%%" %(VaR/position*100)
+        print("VaR;",VaR," ","%.2f%%" %(VaR/position*100))
 
 data = DataCache()
 
@@ -156,6 +156,6 @@ if __name__ == "__main__":
     #print data.get_correlation(stocks)
     #print 'logdiff'
     #print data.get_correlation(stocks, how='logdiff')
-    print 'rolling'
-    print data.get_rolling_corr('GLD', 'SPY', how='logdiff', plot=True)
+    print('rolling')
+    print(data.get_rolling_corr('GLD', 'SPY', how='logdiff', plot=True))
     plt.show()

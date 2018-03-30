@@ -42,7 +42,7 @@ class Downloader(object):
      
         
     def _debugHandler(self,msg):
-        print '[debug]', msg
+        print(('[debug]', msg))
         
     
     def requestData(self,contract,endDateTime,durationStr='1 D',barSizeSetting='30 secs',whatToShow='TRADES',useRTH=1,formatDate=1):  
@@ -55,7 +55,7 @@ class Downloader(object):
         
         
         while self._timeKeeper.nrRequests(timeSpan=600) > 59:
-            print 'Too many requests done. Waiting... '
+            print('Too many requests done. Waiting... ')
             time.sleep(10)
         
         self._timeKeeper.addRequest()
@@ -72,7 +72,7 @@ class Downloader(object):
         if not self._dataHandler.dataReady:
             self._log.error('Data timeout')    
          
-        print self._dataHandler.data
+        print((self._dataHandler.data))
         
         return self._dataHandler.data  
     
@@ -197,4 +197,4 @@ if __name__ == '__main__':
      
     data.to_csv('SPY.csv') # write data to csv
      
-    print 'Done'
+    print('Done')

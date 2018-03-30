@@ -48,8 +48,8 @@ class MatplotlibWidget(QWidget):
         self.setLayout(layout)        
     
     def onPick(self,event):
-        print 'Pick event'
-        print 'you pressed', event.button, event.xdata, event.ydata
+        print('Pick event')
+        print(('you pressed', event.button, event.xdata, event.ydata))
     
     def update(self):
         self.canvas.draw()

@@ -18,7 +18,7 @@ class Logger(object):
         tws.registerAll(self.handler)
 
     def handler(self,msg):
-        print msg
+        print(msg)
     
 class Account(object):
     """ class for holding account data """

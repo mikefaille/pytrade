@@ -13,7 +13,7 @@ from util import visu
 def compare(stock, field='orders', strategy="TrendStrategy_predicted", best=OptTrendStrategy.__name__):
     best_fname="{0}_{1}_{2}.csv".format(stock, best, field)
     predicted_fname="{0}_{1}_{2}.csv".format(stock, strategy, field)
-    print "comparing",best_fname,predicted_fname
+    print("comparing",best_fname,predicted_fname)
     best_data = np.loadtxt(best_fname, usecols=[1], delimiter=',')
     predicted_data = np.loadtxt(predicted_fname, usecols=[1], delimiter=',')
     min_size = min(len(best_data), len(predicted_data))
@@ -37,8 +37,8 @@ def load_dataset(stock, ratio=0.8, name=OptTrendStrategy.__name__):
 def evaluate(exp, dataset):
     y_true = dataset[1]
     y_pred = exp.network.predict(dataset[0])
-    print(sklearn.metrics.confusion_matrix(y_true, y_pred))
-    print('accuracy:',accuracy_score(y_true, y_pred))
+    print((sklearn.metrics.confusion_matrix(y_true, y_pred)))
+    print(('accuracy:',accuracy_score(y_true, y_pred)))
     
 def train_strategy(stock, ratio=0.8, min_improvement=0.001):
     
@@ -67,7 +67,7 @@ def train_strategy(stock, ratio=0.8, min_improvement=0.001):
     return exp
     
 def load_strategy(name, verbose=False):
-    print("loading %s trained strategy" %name)
+    print(("loading %s trained strategy" %name))
     train, valid = load_dataset(name) 
     n, n_input = train[0].shape
     exp = theanets.Experiment(

@@ -148,11 +148,11 @@ class TableView(QTableView):
         menu.exec_(event.globalPos())
 
     def deleteRow(self):
-        print "Action triggered from " + self.name
+        print(("Action triggered from " + self.name))
         
-        print 'Selected rows:'
+        print('Selected rows:')
         for idx in self.selectionModel().selectedRows():
-            print idx.row()
+            print((idx.row()))
            # self.model.deleteRow(idx.row())
             
 
@@ -234,7 +234,7 @@ class Form(QDialog):
         self.setLayout(layout)
         
     def testFcn(self):
-        print 'test function'
+        print('test function')
         self.table.insertRow('foo')
         
 if __name__=='__main__':

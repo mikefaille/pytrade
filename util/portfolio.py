@@ -44,7 +44,7 @@ class Portfolio:
             returns = {}
             closes = {}
             for ticker in self.data['Tickers']:
-                print "getting ", ticker
+                print("getting ", ticker)
                 close = data.DataReader(ticker,'yahoo', start=self.start)['Adj Close']
                 returns[ticker]=close/close.shift(1)
                 closes[ticker]=close
@@ -62,7 +62,7 @@ class Portfolio:
         plt.show()
     
     def __str__(self):
-        print self.data
+        print(self.data)
     
     def get_weighted_returns(self):
         total_weights = self.data.Weights.sum()
@@ -161,5 +161,5 @@ if __name__ == "__main__":
     weights /= weights.sum()
     portfolio = Portfolio(tickers, weights, investment_date)
     portfolio.plot_returns()
-    print portfolio.get_annual_returns()
-    print portfolio.calc_var()
+    print(portfolio.get_annual_returns())
+    print(portfolio.calc_var())

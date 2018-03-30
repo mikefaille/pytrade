@@ -89,7 +89,7 @@ class TrendStrategy(Strategy):
             buy = 0
     
         if verbose:
-            print min_sell, max_sell, buy
+            print(min_sell, max_sell, buy)
     
         return buy
 
@@ -135,7 +135,7 @@ class OptTrendStrategy(TrendStrategy):
             orders[i] = buy
         
         if verbose:
-            print "orders", orders
+            print("orders", orders)
         return orders
 
     def simulate(self, stock, start, end=None, npoints=False,
@@ -145,8 +145,8 @@ class OptTrendStrategy(TrendStrategy):
         data = self.get_data(stock, start, end, npoints, verbose=verbose)
         n = len(data)
         if verbose:
-            print "period:", data.index[0], data.index[-1], ";ndays =",n
-            print data['Open']
+            print("period:", data.index[0], data.index[-1], ";ndays =",n)
+            print(data['Open'])
         #TODO: check open
         orders = self.get_orders(data['Open'], segments=n/5, window=7, charts=charts)
         

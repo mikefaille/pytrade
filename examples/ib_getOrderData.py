@@ -25,8 +25,8 @@ tws.reqAllOpenOrders()
 
 #-------wait for data
 sleep(1)
-print 40*'-'            
-print orders.data()
-print 'done'
+print(40*'-')            
+print(orders.data())
+print('done')
  
 tws.disconnect()

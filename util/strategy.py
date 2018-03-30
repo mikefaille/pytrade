@@ -46,7 +46,7 @@ class Strategy:
                                                 start=start-timedelta(days=self.window),
                                                 end=end)
         if verbose:
-            print "period:", start, end, ";ndays =",(end-start).days
+            print("period:", start, end, ";ndays =",(end-start).days)
        
         return data
 
@@ -70,7 +70,7 @@ class Strategy:
             order = self.apply(stock, data_i, writer)
             orders[i]=order
             if verbose:
-                print end_i+timedelta(days=1), order
+                print(end_i+timedelta(days=1), order)
         
         return orders, data[-n:]   
 
@@ -78,7 +78,7 @@ class Strategy:
         class_name = self.name() 
         fname = '%s_%s_%s.csv' %(stock, class_name, field)
         if verbose:
-            print 'saving %s' %fname
+            print('saving %s' %fname)
             
         with open(fname, 'wb') as f:
             writer = csv.writer(f)

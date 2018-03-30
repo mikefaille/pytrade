@@ -18,10 +18,10 @@ class Parse(object):
        
 	except urllib2.HTTPError, error: 
             contents = error.read()
-	    print contents
+	    print(contents)
 	    
         except:
-	    print sys.exc_info()[0]
+	    print(sys.exc_info()[0])
             time.sleep(5)
             self.parse(url, [])
             exit()
@@ -43,7 +43,7 @@ class Parse(object):
         if first_pass:
             url = url + '&b=1'
         if len(splits) > 1:
-            print url
+            print(url)
             urlsplits = url.split('=')
             urlsplits[-1] = str(int(urlsplits[-1]) + 20)
             url = '='.join(urlsplits)

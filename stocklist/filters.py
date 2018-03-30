@@ -334,16 +334,16 @@ class Filter(object):
     
     # Prints a list of filters
     def list_filters(self):
-        print'Filter List:'
+        print('Filter List:')
         for key in self.filter_desc:
-            print key, 'is the', self.filter_exp[key]
+            print(key, 'is the', self.filter_exp[key])
         
     # Explains a filter
     def explain_filter(self, filter):
         try:
-            print self.filter_desc[filter]
+            print(self.filter_desc[filter])
         except KeyError:
-            print 'Filter ', filter,' not found'
+            print('Filter ', filter,' not found')
 
     # Return values for a given filter
     def get_values(self, filter):
@@ -351,16 +351,16 @@ class Filter(object):
             dct = self.filter_dict[filter]
             if isinstance(dct, dict):
                 for key in dct:
-                    print key, ': ', dct[key]
+                    print(key, ': ', dct[key])
             else:
                 if dct == 'int':
-                    print 'Integer values'
+                    print('Integer values')
                 elif dct == 'float':
-                    print 'Floating point values'
+                    print('Floating point values')
                 elif dct == 'pct':
-                    print 'Percentage'
+                    print('Percentage')
         except KeyError:
-            print 'Filter ', filter,' not found'
+            print('Filter ', filter,' not found')
             
     # Build a query string
     # Accepts a list of tuples
@@ -375,6 +375,6 @@ class Filter(object):
                 #elem = urllib.quote(elem)
                 url += elem
             except KeyError:
-                print tpl, 'is not a valid tuple'
+                print(tpl, 'is not a valid tuple')
                 
         return url

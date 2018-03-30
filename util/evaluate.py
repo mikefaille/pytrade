@@ -101,7 +101,7 @@ class Eval:
 
         self.stockname = stockname
         if self.verbose:
-            print "Evaluation ", self.stockname
+            print("Evaluation ", self.stockname)
     
         # get data
         n = int((5*4)*self.months)
@@ -128,11 +128,11 @@ class Eval:
                 plot_orders(self.data[self.field], self.data['trade'], stockname, show=True)
            
             if self.verbose:
-                print "------------------------------"
-                print "min_cash:",self.min_cash,"min_shares:",self.min_shares
-                print "date\norder\ttrade"    
+                print("------------------------------")
+                print("min_cash:",self.min_cash,"min_shares:",self.min_shares)
+                print("date\norder\ttrade")    
                 for d, order,trade in zip(self.data.index, self.orders, self.data['trade']):
-                    print d.date(), order, trade
+                    print(d.date(), order, trade)
 
             return self.data.ix[:, header]
 
@@ -150,7 +150,7 @@ class Eval:
         self.data.set_value(start, 'total', self.init_cash+value)
         self.data.set_value(start, 'pnl', 0)
         if verbose:
-            print self.data.ix[:, header]
+            print(self.data.ix[:, header])
 
     def BackTest(self, orders):
 
@@ -249,7 +249,7 @@ class Eval:
             try:
                 trade = self.run(stock, charts=charts)
                 if False:
-                    print i, stock, trade.ix[-1:,'cash':]
+                    print(i, stock, trade.ix[-1:,'cash':])
                 trademap[stock] = trade[-1:]['pnl'][-1]
                 tradedetails[stock] = trade[-1:]
             except Exception,ex:
@@ -258,16 +258,16 @@ class Eval:
         st = SortHistogram(trademap, False, True)
         
         if len(stocks)>1:
-            print "Here are the Stocks sorted by PnL"
+            print("Here are the Stocks sorted by PnL")
         for i,el in enumerate(st):
             stock, value = el
-            print "#", i+1, stock
-            print tradedetails[stock].ix[:,header]
+            print("#", i+1, stock)
+            print(tradedetails[stock].ix[:,header])
         return st
 
     def plot_field(self, field):
         plot_field(self.data, field, self.stockname)
 
 if __name__ == "__main__":
-    print TrendStrategy.apply('TSLA')
-    print TrendStrategy.simulate('TSLA', 25)
+    print(TrendStrategy.apply('TSLA'))
+    print(TrendStrategy.simulate('TSLA', 25))

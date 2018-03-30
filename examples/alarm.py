@@ -31,7 +31,7 @@ fetch = Fetch()
 if args.download:
     stocks = fetch.fetch_stocks('all')
 elif args.cat!=None:
-    print "category", args.cat
+    print("category", args.cat)
     #params is a list of tuples. More info on params can be found in stocklist/filters.py
     params = [('sc', args.cat)]
     stocks = fetch.fetch_stocks(params)
@@ -47,7 +47,7 @@ else:
 
 
 for stock in stocks:
-    print stock
+    print(stock)
     previous = data.DataReader(stock, 'google', lastn=args.window)
     std = previous.pct_change()[1:].std()
     

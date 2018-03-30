@@ -14,9 +14,9 @@ def walk(n=1000, annual_drift=.1, annual_volatility=.4, init_price=100,
     drift_mean = drift-0.5*math.pow(vol,2)
     prices = np.zeros(n)
     if verbose:
-        print "drift:", drift
-        print "volatility:", vol
-        print "drift mean:", drift_mean
+        print("drift:", drift)
+        print("volatility:", vol)
+        print("drift mean:", drift_mean)
     previous_price = init_price
     for i in range(n):
         r = random()
@@ -24,7 +24,7 @@ def walk(n=1000, annual_drift=.1, annual_volatility=.4, init_price=100,
         log_return = drift+vol*z
         price = previous_price*math.exp(log_return)
         if verbose:
-            print "#%i r=%.2f z=%.2f ret=%.2f%% price=%.2f$" %(i, r, z, log_return*100, price)
+            print("#%i r=%.2f z=%.2f ret=%.2f%% price=%.2f$" %(i, r, z, log_return*100, price))
         previous_price = price
         prices[i]=price
 
@@ -38,5 +38,5 @@ if __name__=="__main__":
     prices.sort()
     Si = np.percentile(prices, 100-confidence)
     VaR = Si - prices[0] 
-    print "Si=%.2f Lowest=%.2f VaR=%.2f" %(Si, prices[0], VaR)
+    print("Si=%.2f Lowest=%.2f VaR=%.2f" %(Si, prices[0], VaR))
     

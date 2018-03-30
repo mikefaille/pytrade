@@ -4,11 +4,11 @@ from ib.opt import Connection, message
 
 def error_handler(msg):
     """Handles the capturing of error messages"""
-    print "Server Error: %s" % msg
+    print("Server Error: %s" % msg)
 
 def reply_handler(msg):
     """Handles of server replies"""
-    print "Server Response: %s, %s" % (msg.typeName, msg)
+    print("Server Response: %s, %s" % (msg.typeName, msg))
 
 
 def create_contract(symbol, sec_type, exch, prim_exch, curr):

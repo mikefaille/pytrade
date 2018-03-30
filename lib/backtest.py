@@ -90,7 +90,7 @@ class Backtest(object):
                 shares+=self.trades[i]
                 cash-=self.trades[i]*price[i]+trans_fees
                 if verbose:
-                    print i, trade, "->", self.trades[i], shares
+                    print(i, trade, "->", self.trades[i], shares)
 
         #TODO: add auto rebalancing
         
@@ -200,7 +200,7 @@ class ProgressBar:
         self.__update_amount(0)
 
     def animate(self, iteration):
-        print '\r',self,
+        print('\r',self)
         sys.stdout.flush()
         self.update_iteration(iteration + 1)
 

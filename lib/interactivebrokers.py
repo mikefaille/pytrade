@@ -76,7 +76,7 @@ def readActivityFlex(fName):
     data = dict(zip(header, [[] for h in header]))
 
     for row in rows[1:]:
-        print row
+        print(row)
         for col in header:
             val = types[col](row[idx[col]])
             data[col].append(val)
@@ -244,11 +244,11 @@ class Broker(object):
 
     def __del__(self):
         """destructor, clean up """
-        print 'Broker is cleaning up after itself.'
+        print('Broker is cleaning up after itself.')
         self.tws.disconnect()
 
     def debugHandler(self, msg):
-        print msg
+        print(msg)
 
     def defaultHandler(self, msg):
         """ default message handler """
@@ -334,7 +334,7 @@ class Downloader(object):
 
 
     def _debugHandler(self, msg):
-        print '[debug]', msg
+        print(('[debug]', msg))
 
 
     def requestData(self, contract, endDateTime, durationStr='1 D', barSizeSetting='30 secs', whatToShow='TRADES',
@@ -342,7 +342,7 @@ class Downloader(object):
         self._log.debug('Requesting data for %s end time %s.' % (contract.m_symbol, endDateTime))
 
         while self._timeKeeper.nrRequests(timeSpan=600) > 59:
-            print 'Too many requests done. Waiting... '
+            print('Too many requests done. Waiting... ')
             time.sleep(10)
 
         self._timeKeeper.addRequest()
@@ -360,7 +360,7 @@ class Downloader(object):
         if not self._dataHandler.dataReady:
             self._log.error('Data timeout')
 
-        print self._dataHandler.data
+        print((self._dataHandler.data))
 
         return self._dataHandler.data
 
@@ -427,7 +427,7 @@ class TimeKeeper(object):
 #---------------test functions-----------------
 
 def dummyHandler(msg):
-    print msg
+    print(msg)
 
 
 def testConnection():
@@ -441,7 +441,7 @@ def testConnection():
     tws.reqMktData(1, c, '', False)
     sleep(3)
 
-    print 'testConnection done.'
+    print('testConnection done.')
 
 
 def testSubscriptions():
@@ -449,7 +449,7 @@ def testSubscriptions():
     s.add('SPY')
     #s.add('XLE')
 
-    print s
+    print(s)
 
 
 def testBroker():
@@ -581,12 +581,12 @@ def startGui():
 if __name__ == "__main__":
     import ib
 
-    print 'iby version:', ib.version
+    print(('iby version:', ib.version))
     #testConnection()
     #testBroker()
     #testSubscriptions()
-    print message.messageTypeNames()
+    print((message.messageTypeNames()))
     startGui()
-    print 'All done'
+    print('All done')
     
     

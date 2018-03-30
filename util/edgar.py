@@ -23,5 +23,5 @@ if __name__ == "__main__":
     data = edgar.get_financial_docs('AAPL')
     
     for key in data['result']['rows'][0]['values']:
-            print key['field']
-            print key['value']
+            print(key['field'])
+            print(key['value'])

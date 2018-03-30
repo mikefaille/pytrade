@@ -162,7 +162,7 @@ class Spread(object):
     def calculateShares(self,bet):
         ''' set number of shares based on last quote '''
         if 'price' not in self.data.columns:
-            print 'Getting quote...'
+            print('Getting quote...')
             self.getQuote()
         self.data['shares'] = bet*self.data['beta']/self.data['price']    
         
@@ -225,7 +225,7 @@ class Spread(object):
         """ fetch historic data """
         data = {}        
         for symbol in self.symbols:
-            print 'Downloading %s' % symbol
+            print(('Downloading %s' % symbol))
             data[symbol]=(yahoo.getHistoricData(symbol,sDate=startDate)['adj_close'] )
            
         self.price = pd.DataFrame(data).dropna()

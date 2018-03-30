@@ -16,15 +16,15 @@ class Fetch(object):
                 try:
                     stocklist.extend(self.fetch_stocks(params))
                 except Exception, e:
-                    print cat 
-                    print e
+                    print(cat) 
+                    print(e)
                     #print stocklist
-                    print 'exited prematurely'
+                    print('exited prematurely')
                     exit()
         else:
             url = filter.build_query_string(params)
             logging.info('url:%s' %url)
-            print url
+            print(url)
 	    stocklist = parser.parse(url, stocklist)
 
         return stocklist	

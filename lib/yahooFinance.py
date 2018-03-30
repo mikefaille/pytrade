@@ -76,7 +76,7 @@ class HistData(object):
         
     def save(self,dataFile):
         """ save data to HDF"""
-        print 'Saving data to', dataFile
+        print(('Saving data to', dataFile))
         store = HDFStore(dataFile)
         for symbol in self.wp.items:
             store[symbol] = self.wp[symbol]
@@ -107,7 +107,7 @@ class HistData(object):
                     self.wp[symbol] = df
             
             except Exception,e:
-                print e 
+                print(e) 
             p.animate(idx+1)
     
     def getDataFrame(self,field='close'):
@@ -143,7 +143,7 @@ def getQuote(symbols):
         lines = urllib2.urlopen(urlStr).readlines()
     except Exception, e:
         s = "Failed to download:\n{0}".format(e);
-        print s
+        print(s)
     
     for line in lines:
         fields = line.strip().split(',')
@@ -191,7 +191,7 @@ def getHistoricData(symbols, **options):
         return getSymbolData(symbols,**options)
     else:
         data = {}
-        print 'Downloading data:'
+        print('Downloading data:')
         p = ProgressBar(len(symbols))
         for idx,symbol in enumerate(symbols):
             p.animate(idx+1)
@@ -216,7 +216,7 @@ def getSymbolData(symbol, sDate=(1990,1,1),eDate=date.today().timetuple()[0:3], 
         lines = urllib2.urlopen(urlStr).readlines()
     except Exception, e:
         s = "Failed to download:\n{0}".format(e);
-        print s
+        print(s)
         return None
 
     dates = []
@@ -238,7 +238,7 @@ def getSymbolData(symbol, sDate=(1990,1,1),eDate=date.today().timetuple()[0:3], 
     df = DataFrame(data,index=idx).sort()
     
     if verbose:
-        print 'Got %i days of data' % len(df)
+        print(('Got %i days of data' % len(df)))
     
     if adjust:
         return _adjust(df,removeOrig=True)
