@@ -45,9 +45,9 @@ class Symbols(object):
         
         q = "SELECT * FROM "+table # insecure, but ? does not work here
         self.cur.execute(q)
-        print '-'*10+table+"-"*10
+        print('-'*10+table+"-"*10)
         for row in self.cur:
-            print row 
+            print(row) 
    
     def _testFcn(self):
         self.sql("insert into tbl_symbols ")         
@@ -56,7 +56,7 @@ class Symbols(object):
         self.cur.execute("select name from sqlite_master where type='table' ")
         res = self.cur.fetchall()
         for row in res:
-            print row[0]
+            print(row[0])
     
     def __del__(self):
         self.con.close()

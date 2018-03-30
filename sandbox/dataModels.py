@@ -15,7 +15,7 @@ from PyQt4.QtGui import (QApplication,QDialog,QVBoxLayout, QTableView, QWidget, 
 
 def initDb(dbName):
     '''reset database '''
-    print 'Resetting ' , dbName
+    print('Resetting ' , dbName)
     con = lite.connect(dbName)
     cur = con.cursor()
     
@@ -123,8 +123,8 @@ class Symbols(QAbstractTableModel):
     
     def printTable(self):
         self.load()
-        print '-'*10
-        print self.data
+        print('-'*10)
+        print(self.data)
    
     def _testFcn(self):
         self.sql("insert into tbl_symbols ")         
@@ -133,7 +133,7 @@ class Symbols(QAbstractTableModel):
         self.cur.execute("select name from sqlite_master where type='table' ")
         res = self.cur.fetchall()
         for row in res:
-            print row[0]
+            print(row[0])
     
     def __del__(self):
         self.con.close()
@@ -163,7 +163,7 @@ def startGui():
 def testModel():
     ' simple model test, without gui'
     m  = SqliteTableModel(con,'tbl_symbols')
-    print m
+    print(m)
         
 if __name__=='__main__':
     
@@ -175,7 +175,7 @@ if __name__=='__main__':
     cur.execute("select name from sqlite_master where type='table' ")
     
     for row in cur:
-        print row[0]
+        print(row[0])
 
     
     testModel()

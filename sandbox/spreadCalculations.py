@@ -48,14 +48,14 @@ res = readBiggerScreener('CointPairs.csv')
 
 
 quote = yahooFinance.getQuote(symbols)
-print quote
+print(quote)
 
 
 s = Spread(symbols,histClose=df, estimateBeta = False)
 s.setLast(quote['last'])
 
 s.setShares(Series({'SPY':1,'IWM':-1.7}))
-print s
+print(s)
 #s.value.plot()
 #s.plot()
 fig = figure(2)
